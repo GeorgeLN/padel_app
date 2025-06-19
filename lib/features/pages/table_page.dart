@@ -46,6 +46,16 @@ class _TablaEstadisticasWidgetState extends State<TablaEstadisticasWidget> {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
+
+    final List<Map<String, dynamic>> datosJugador = [
+      {
+        'Team': 'Jugador 1',
+        'Puntos POS': 100,
+        '%': '6%',
+        'Asist': 23,
+        'Pts': 30,
+      }
+    ];
     
     return Scaffold(
       backgroundColor: AppColors.primaryBlack,
@@ -65,7 +75,7 @@ class _TablaEstadisticasWidgetState extends State<TablaEstadisticasWidget> {
               icon: Icons.stadium,
             ),
         
-            //AQUI VA LA TABLA
+            TablaDatosJugador(datos: datosJugador),
 
             // Container(
             //   width: size.width * 0.9,
@@ -359,6 +369,66 @@ class RankingButton extends StatelessWidget {
             fontWeight: FontWeight.bold,
           ),
         ),
+      ),
+    );
+  }
+}
+
+class TablaDatosJugador extends StatelessWidget {
+  final List<Map<String, dynamic>> datos;
+
+  const TablaDatosJugador({Key? key, required this.datos}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size; // Obtener size para el margin
+
+    TextStyle headerTextStyle = GoogleFonts.lato(
+      color: AppColors.textWhite,
+      fontWeight: FontWeight.bold,
+    );
+
+    TextStyle cellTextStyle = GoogleFonts.lato(
+      color: AppColors.textWhite, // O AppColors.textLightGray si se prefiere
+    );
+
+    return Container(
+      width: size.width * 0.9, // Ancho similar a otros elementos
+      margin: EdgeInsets.only(bottom: size.height * 0.02),
+      padding: EdgeInsets.symmetric(vertical: size.height * 0.01), // Padding interno
+      decoration: BoxDecoration(
+        color: AppColors.secondBlack,
+        borderRadius: BorderRadius.circular(18),
+      ),
+      child: DataTable(
+        headingRowColor: MaterialStateProperty.resolveWith<Color?>(
+          (Set<MaterialState> states) {
+            return AppColors.secondBlack; // Color de fondo para la fila de encabezados
+          },
+        ),
+        dataRowColor: MaterialStateProperty.resolveWith<Color?>(
+          (Set<MaterialState> states) {
+            return AppColors.secondBlack; // Color de fondo para las filas de datos
+          },
+        ),
+        columns: <DataColumn>[
+          DataColumn(label: Text('Team', style: headerTextStyle)),
+          DataColumn(label: Text('Puntos POS', style: headerTextStyle)),
+          DataColumn(label: Text('%', style: headerTextStyle)),
+          DataColumn(label: Text('Asist', style: headerTextStyle)),
+          DataColumn(label: Text('Pts', style: headerTextStyle)),
+        ],
+        rows: datos.map((fila) {
+          return DataRow(
+            cells: <DataCell>[
+              DataCell(Text(fila['Team'].toString(), style: cellTextStyle)),
+              DataCell(Text(fila['Puntos POS'].toString(), style: cellTextStyle)),
+              DataCell(Text(fila['%'].toString(), style: cellTextStyle)),
+              DataCell(Text(fila['Asist'].toString(), style: cellTextStyle)),
+              DataCell(Text(fila['Pts'].toString(), style: cellTextStyle)),
+            ],
+          );
+        }).toList(),
       ),
     );
   }
