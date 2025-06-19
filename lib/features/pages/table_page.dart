@@ -46,6 +46,16 @@ class _TablaEstadisticasWidgetState extends State<TablaEstadisticasWidget> {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
+
+    final List<Map<String, dynamic>> datosJugador = [
+      {
+        'Team': 'Jugador 1',
+        'Puntos POS': 100,
+        '%': '6%',
+        'Asist': 23,
+        'Pts': 30,
+      }
+    ];
     
     return Scaffold(
       backgroundColor: AppColors.primaryBlack,
@@ -65,10 +75,150 @@ class _TablaEstadisticasWidgetState extends State<TablaEstadisticasWidget> {
               icon: Icons.stadium,
             ),
         
-            SizedBox(
-              height: size.height * 0.02,
-              child: TablaDatosJugador(datos: datos),
-            ),
+            TablaDatosJugador(datos: datosJugador),
+
+            // Container(
+            //   width: size.width * 0.9,
+            //   height: size.height * 0.35,
+            //   margin: EdgeInsets.only(bottom: size.height * 0.02),
+            //   decoration: BoxDecoration(
+            //     color: Colors.transparent,
+            //     borderRadius: BorderRadius.circular(18),
+            //   ),
+
+            //   child: Row(
+            //     children: [
+            //       Container(
+            //         width: size.width * 0.35,
+            //         decoration: BoxDecoration(
+            //           color: AppColors.secondBlack,
+            //           borderRadius: BorderRadius.only(
+            //             topLeft: Radius.circular(18),
+            //             bottomLeft: Radius.circular(18),
+            //           ),
+            //         ),
+
+            //         child: Column(
+            //           crossAxisAlignment: CrossAxisAlignment.center,
+            //           children: [
+            //             Padding(
+            //               padding: EdgeInsets.only(top: size.height * 0.01),
+            //               child: Text(
+            //                 'Team',
+            //                 style: GoogleFonts.lato(
+            //                   color: AppColors.textWhite,
+            //                   fontSize: size.width * 0.04,
+            //                   fontWeight: FontWeight.bold,
+            //                 ),
+            //               ),
+            //             ),
+
+            //             Row(
+            //               children: [
+            //                 Padding(
+            //                   padding: EdgeInsets.all(size.width * 0.03),
+            //                   child: Icon(Icons.groups, color: AppColors.textWhite, size: size.width * 0.05),
+            //                 ),
+            //                 Expanded(
+            //                   child: TextField(
+            //                     style: GoogleFonts.lato(color: AppColors.textWhite),
+            //                     decoration: InputDecoration(
+            //                       border: InputBorder.none,
+                                  
+            //                     ),
+            //                   ),
+            //                 ),
+            //               ],
+            //             ),
+
+            //             Row(
+            //               children: [
+            //                 Padding(
+            //                   padding: EdgeInsets.all(size.width * 0.03),
+            //                   child: Icon(Icons.groups, color: AppColors.textWhite, size: size.width * 0.05),
+            //                 ),
+            //                 Expanded(
+            //                   child: TextField(
+            //                     style: GoogleFonts.lato(color: AppColors.textWhite),
+            //                     decoration: InputDecoration(
+            //                       border: InputBorder.none,
+                                  
+            //                     ),
+            //                   ),
+            //                 ),
+            //               ],
+            //             ),
+
+            //             Row(
+            //               children: [
+            //                 Padding(
+            //                   padding: EdgeInsets.all(size.width * 0.03),
+            //                   child: Icon(Icons.groups, color: AppColors.textWhite, size: size.width * 0.05),
+            //                 ),
+            //                 Expanded(
+            //                   child: TextField(
+            //                     style: GoogleFonts.lato(color: AppColors.textWhite),
+            //                     decoration: InputDecoration(
+            //                       border: InputBorder.none,
+                                  
+            //                     ),
+            //                   ),
+            //                 ),
+            //               ],
+            //             ),
+
+            //             Row(
+            //               children: [
+            //                 Padding(
+            //                   padding: EdgeInsets.all(size.width * 0.03),
+            //                   child: Icon(Icons.groups, color: AppColors.textWhite, size: size.width * 0.05),
+            //                 ),
+            //                 Expanded(
+            //                   child: TextField(
+            //                     style: GoogleFonts.lato(color: AppColors.textWhite),
+            //                     decoration: InputDecoration(
+            //                       border: InputBorder.none,
+                                  
+            //                     ),
+            //                   ),
+            //                 ),
+            //               ],
+            //             ),
+
+            //             Row(
+            //               children: [
+            //                 Padding(
+            //                   padding: EdgeInsets.all(size.width * 0.03),
+            //                   child: Icon(Icons.groups, color: AppColors.textWhite, size: size.width * 0.05),
+            //                 ),
+            //                 Expanded(
+            //                   child: TextField(
+            //                     style: GoogleFonts.lato(color: AppColors.textWhite),
+            //                     decoration: InputDecoration(
+            //                       border: InputBorder.none,
+                                  
+            //                     ),
+            //                   ),
+            //                 ),
+            //               ],
+            //             ),
+            //           ],
+            //         ),
+            //       ),
+
+            //       Container(
+            //         width: size.width * 0.55,
+            //         decoration: BoxDecoration(
+            //           color: AppColors.secondBlack,
+            //           borderRadius: BorderRadius.only(
+            //             topRight: Radius.circular(18),
+            //             bottomRight: Radius.circular(18),
+            //           ),
+            //         ),
+            //       ),
+            //     ],
+            //   ),
+            // ),
 
             DropButton(
               size: size,
@@ -231,29 +381,55 @@ class TablaDatosJugador extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return DataTable(
-      columns: const <DataColumn>[
-        DataColumn(label: Text('Team')),
-        DataColumn(label: Text('Puntos POS')),
-        DataColumn(label: Text('%')),
-        DataColumn(label: Text('Asist')),
-        DataColumn(label: Text('Pts')),
-      ],
-      rows: const <DataRow>[
-        // Por ahora, las filas pueden estar vacías o puedes usar datos de marcador de posición simples
-        // Ejemplo de fila con datos de marcador de posición:
-        /*
-        DataRow(
-          cells: <DataCell>[
-            DataCell(Text('Equipo A')),
-            DataCell(Text('10')),
-            DataCell(Text('50%')),
-            DataCell(Text('5')),
-            DataCell(Text('20')),
-          ],
+    final size = MediaQuery.of(context).size; // Obtener size para el margin
+
+    TextStyle headerTextStyle = GoogleFonts.lato(
+      color: AppColors.textWhite,
+      fontWeight: FontWeight.bold,
+    );
+
+    TextStyle cellTextStyle = GoogleFonts.lato(
+      color: AppColors.textWhite, // O AppColors.textLightGray si se prefiere
+    );
+
+    return Container(
+      width: size.width * 0.9, // Ancho similar a otros elementos
+      margin: EdgeInsets.only(bottom: size.height * 0.02),
+      padding: EdgeInsets.symmetric(vertical: size.height * 0.01), // Padding interno
+      decoration: BoxDecoration(
+        color: AppColors.secondBlack,
+        borderRadius: BorderRadius.circular(18),
+      ),
+      child: DataTable(
+        headingRowColor: MaterialStateProperty.resolveWith<Color?>(
+          (Set<MaterialState> states) {
+            return AppColors.secondBlack; // Color de fondo para la fila de encabezados
+          },
         ),
-        */
-      ],
+        dataRowColor: MaterialStateProperty.resolveWith<Color?>(
+          (Set<MaterialState> states) {
+            return AppColors.secondBlack; // Color de fondo para las filas de datos
+          },
+        ),
+        columns: <DataColumn>[
+          DataColumn(label: Text('Team', style: headerTextStyle)),
+          DataColumn(label: Text('Puntos POS', style: headerTextStyle)),
+          DataColumn(label: Text('%', style: headerTextStyle)),
+          DataColumn(label: Text('Asist', style: headerTextStyle)),
+          DataColumn(label: Text('Pts', style: headerTextStyle)),
+        ],
+        rows: datos.map((fila) {
+          return DataRow(
+            cells: <DataCell>[
+              DataCell(Text(fila['Team'].toString(), style: cellTextStyle)),
+              DataCell(Text(fila['Puntos POS'].toString(), style: cellTextStyle)),
+              DataCell(Text(fila['%'].toString(), style: cellTextStyle)),
+              DataCell(Text(fila['Asist'].toString(), style: cellTextStyle)),
+              DataCell(Text(fila['Pts'].toString(), style: cellTextStyle)),
+            ],
+          );
+        }).toList(),
+      ),
     );
   }
 }
