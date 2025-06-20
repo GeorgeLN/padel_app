@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:padel_app/features/design/app_colors.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:padel_app/features/widgets/add_data_form.dart';
 
 class TablaEstadisticasWidget extends StatefulWidget {
 
@@ -11,6 +12,45 @@ class TablaEstadisticasWidget extends StatefulWidget {
 }
 
 class _TablaEstadisticasWidgetState extends State<TablaEstadisticasWidget> {
+  void _showAddDataForm(BuildContext context) {
+    // Verifying AddDataForm usage
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (_) {
+        return Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+            top: 20,
+            left: 20,
+            right: 20,
+          ),
+          child: AddDataForm(
+            onSave: (data) {
+              _addTableData(data);
+              Navigator.of(context).pop(); // Close the bottom sheet
+            },
+          ),
+        );
+      },
+    );
+  }
+
+  List<Map<String, dynamic>> _dynamicTableData = [
+    {
+      'Team': 'Jugador Inicial',
+      'Puntos POS': 100,
+      '%': '6%',
+      'Asist': 23,
+      'Pts': 30,
+    }
+  ];
+
+  void _addTableData(Map<String, dynamic> newData) {
+    setState(() {
+      _dynamicTableData.add(newData);
+    });
+  }
 
   final List<Map<String, dynamic>> datos = [
     {
@@ -47,16 +87,6 @@ class _TablaEstadisticasWidgetState extends State<TablaEstadisticasWidget> {
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
 
-    final List<Map<String, dynamic>> datosJugador = [
-      {
-        'Team': 'Jugador 1',
-        'Puntos POS': 100,
-        '%': '6%',
-        'Asist': 23,
-        'Pts': 30,
-      }
-    ];
-    
     return Scaffold(
       backgroundColor: AppColors.primaryBlack,
       
@@ -75,7 +105,7 @@ class _TablaEstadisticasWidgetState extends State<TablaEstadisticasWidget> {
               icon: Icons.stadium,
             ),
         
-            TablaDatosJugador(datos: datosJugador),
+            TablaDatosJugador(datos: _dynamicTableData),
 
             // Container(
             //   width: size.width * 0.9,
@@ -227,6 +257,13 @@ class _TablaEstadisticasWidgetState extends State<TablaEstadisticasWidget> {
             ),
           ],
         ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          _showAddDataForm(context);
+        },
+        backgroundColor: AppColors.primaryGreen,
+        child: const Icon(Icons.add, color: AppColors.textBlack),
       ),
     );
   }
