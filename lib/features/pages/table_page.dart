@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:padel_app/features/design/app_colors.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:padel_app/features/widgets/add_data_form.dart';
+
 
 class TablaEstadisticasWidget extends StatefulWidget {
 
@@ -11,51 +13,46 @@ class TablaEstadisticasWidget extends StatefulWidget {
 }
 
 class _TablaEstadisticasWidgetState extends State<TablaEstadisticasWidget> {
+  void _showAddDataForm(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true, // Important for scrollable content in bottom sheet
+      builder: (_) {
+        return Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+            top: 20,
+            left: 20,
+            right: 20,
+          ),
+          child: AddDataForm(
+            onSave: (data) {
+              _addTableData(data);
+              Navigator.of(context).pop(); // Close the bottom sheet
+            },
+          ),
+        );
+      },
+    );
+  }
 
-  final List<Map<String, dynamic>> datos = [
-    {
-      'nombre': 'Jugador 1',
-      'icono': Icons.sports_soccer,
-      'pos': 6,
-      'porcentaje': 23,
-      'asistencias': 36,
-    },
-    {
-      'nombre': 'Jugador 2',
-      'icono': Icons.sports_soccer,
-      'pos': 7,
-      'porcentaje': 15,
-      'asistencias': 33,
-    },
-    {
-      'nombre': 'Team 3',
-      'icono': Icons.sports_soccer,
-      'pos': 9,
-      'porcentaje': 20,
-      'asistencias': 30,
-    },
-    {
-      'nombre': 'Team 4',
-      'icono': Icons.sports_soccer,
-      'pos': 10,
-      'porcentaje': 16,
-      'asistencias': 27,
-    },
-  ];
+  List<Map<String, dynamic>> _dynamicTableData = [{
+    'Team': 'Jugador Inicial',
+    'Puntos POS': 100,
+    '%': '6%',
+    'Asist': 23,
+    'Pts': 30,
+  }];
+
+  void _addTableData(Map<String, dynamic> newData) {
+    setState(() {
+      _dynamicTableData.add(newData);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
-
-    final List<Map<String, dynamic>> datosJugador = [
-      {
-        'Team': 'Jugador 1',
-        'Puntos POS': 100,
-        '%': '6%',
-        'Asist': 23,
-        'Pts': 30,
-      }
-    ];
     
     return Scaffold(
       backgroundColor: AppColors.primaryBlack,
@@ -75,150 +72,7 @@ class _TablaEstadisticasWidgetState extends State<TablaEstadisticasWidget> {
               icon: Icons.stadium,
             ),
         
-            TablaDatosJugador(datos: datosJugador),
-
-            // Container(
-            //   width: size.width * 0.9,
-            //   height: size.height * 0.35,
-            //   margin: EdgeInsets.only(bottom: size.height * 0.02),
-            //   decoration: BoxDecoration(
-            //     color: Colors.transparent,
-            //     borderRadius: BorderRadius.circular(18),
-            //   ),
-
-            //   child: Row(
-            //     children: [
-            //       Container(
-            //         width: size.width * 0.35,
-            //         decoration: BoxDecoration(
-            //           color: AppColors.secondBlack,
-            //           borderRadius: BorderRadius.only(
-            //             topLeft: Radius.circular(18),
-            //             bottomLeft: Radius.circular(18),
-            //           ),
-            //         ),
-
-            //         child: Column(
-            //           crossAxisAlignment: CrossAxisAlignment.center,
-            //           children: [
-            //             Padding(
-            //               padding: EdgeInsets.only(top: size.height * 0.01),
-            //               child: Text(
-            //                 'Team',
-            //                 style: GoogleFonts.lato(
-            //                   color: AppColors.textWhite,
-            //                   fontSize: size.width * 0.04,
-            //                   fontWeight: FontWeight.bold,
-            //                 ),
-            //               ),
-            //             ),
-
-            //             Row(
-            //               children: [
-            //                 Padding(
-            //                   padding: EdgeInsets.all(size.width * 0.03),
-            //                   child: Icon(Icons.groups, color: AppColors.textWhite, size: size.width * 0.05),
-            //                 ),
-            //                 Expanded(
-            //                   child: TextField(
-            //                     style: GoogleFonts.lato(color: AppColors.textWhite),
-            //                     decoration: InputDecoration(
-            //                       border: InputBorder.none,
-                                  
-            //                     ),
-            //                   ),
-            //                 ),
-            //               ],
-            //             ),
-
-            //             Row(
-            //               children: [
-            //                 Padding(
-            //                   padding: EdgeInsets.all(size.width * 0.03),
-            //                   child: Icon(Icons.groups, color: AppColors.textWhite, size: size.width * 0.05),
-            //                 ),
-            //                 Expanded(
-            //                   child: TextField(
-            //                     style: GoogleFonts.lato(color: AppColors.textWhite),
-            //                     decoration: InputDecoration(
-            //                       border: InputBorder.none,
-                                  
-            //                     ),
-            //                   ),
-            //                 ),
-            //               ],
-            //             ),
-
-            //             Row(
-            //               children: [
-            //                 Padding(
-            //                   padding: EdgeInsets.all(size.width * 0.03),
-            //                   child: Icon(Icons.groups, color: AppColors.textWhite, size: size.width * 0.05),
-            //                 ),
-            //                 Expanded(
-            //                   child: TextField(
-            //                     style: GoogleFonts.lato(color: AppColors.textWhite),
-            //                     decoration: InputDecoration(
-            //                       border: InputBorder.none,
-                                  
-            //                     ),
-            //                   ),
-            //                 ),
-            //               ],
-            //             ),
-
-            //             Row(
-            //               children: [
-            //                 Padding(
-            //                   padding: EdgeInsets.all(size.width * 0.03),
-            //                   child: Icon(Icons.groups, color: AppColors.textWhite, size: size.width * 0.05),
-            //                 ),
-            //                 Expanded(
-            //                   child: TextField(
-            //                     style: GoogleFonts.lato(color: AppColors.textWhite),
-            //                     decoration: InputDecoration(
-            //                       border: InputBorder.none,
-                                  
-            //                     ),
-            //                   ),
-            //                 ),
-            //               ],
-            //             ),
-
-            //             Row(
-            //               children: [
-            //                 Padding(
-            //                   padding: EdgeInsets.all(size.width * 0.03),
-            //                   child: Icon(Icons.groups, color: AppColors.textWhite, size: size.width * 0.05),
-            //                 ),
-            //                 Expanded(
-            //                   child: TextField(
-            //                     style: GoogleFonts.lato(color: AppColors.textWhite),
-            //                     decoration: InputDecoration(
-            //                       border: InputBorder.none,
-                                  
-            //                     ),
-            //                   ),
-            //                 ),
-            //               ],
-            //             ),
-            //           ],
-            //         ),
-            //       ),
-
-            //       Container(
-            //         width: size.width * 0.55,
-            //         decoration: BoxDecoration(
-            //           color: AppColors.secondBlack,
-            //           borderRadius: BorderRadius.only(
-            //             topRight: Radius.circular(18),
-            //             bottomRight: Radius.circular(18),
-            //           ),
-            //         ),
-            //       ),
-            //     ],
-            //   ),
-            // ),
+            TablaDatosJugador(datos: _dynamicTableData),
 
             DropButton(
               size: size,
@@ -227,6 +81,14 @@ class _TablaEstadisticasWidgetState extends State<TablaEstadisticasWidget> {
             ),
           ],
         ),
+      ),
+
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          _showAddDataForm(context);
+        },
+        backgroundColor: AppColors.primaryGreen,
+        child: const Icon(Icons.add, color: AppColors.textBlack),
       ),
     );
   }
@@ -296,7 +158,7 @@ class DropButton extends StatelessWidget {
           CircleAvatar(
             radius: size.width * 0.075,
             backgroundColor: AppColors.secondBlack,
-            child: Icon(icon, color: AppColors.textWhite, size: size.width * 0.05),
+            child: Icon(icon, color: AppColors.textWhite, size: size.width * 0.08),
           ),
     
           Container(
@@ -377,7 +239,7 @@ class RankingButton extends StatelessWidget {
 class TablaDatosJugador extends StatelessWidget {
   final List<Map<String, dynamic>> datos;
 
-  const TablaDatosJugador({Key? key, required this.datos}) : super(key: key);
+  const TablaDatosJugador({super.key, required this.datos});
 
   @override
   Widget build(BuildContext context) {
@@ -394,41 +256,48 @@ class TablaDatosJugador extends StatelessWidget {
 
     return Container(
       width: size.width * 0.9, // Ancho similar a otros elementos
-      margin: EdgeInsets.only(bottom: size.height * 0.02),
-      padding: EdgeInsets.symmetric(vertical: size.height * 0.01), // Padding interno
+      margin: EdgeInsets.only(bottom: size.height * 0.06),
+      padding: EdgeInsets.symmetric(vertical: size.height * 0.015), // Padding interno
       decoration: BoxDecoration(
         color: AppColors.secondBlack,
         borderRadius: BorderRadius.circular(18),
       ),
-      child: DataTable(
-        headingRowColor: MaterialStateProperty.resolveWith<Color?>(
-          (Set<MaterialState> states) {
-            return AppColors.secondBlack; // Color de fondo para la fila de encabezados
-          },
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: DataTable(
+          headingRowColor: WidgetStateProperty.resolveWith<Color?>(
+            (Set<WidgetState> states) {
+              return AppColors.secondBlack; // Color de fondo para la fila de encabezados
+            },
+          ),
+          dataRowColor: WidgetStateProperty.resolveWith<Color?>(
+            (Set<WidgetState> states) {
+              return AppColors.secondBlack; // Color de fondo para las filas de datos
+            },
+          ),
+          columns: <DataColumn>[
+            DataColumn(label: Text('Team', style: headerTextStyle)),
+            DataColumn(label: Text('Puntos POS', style: headerTextStyle)),
+            DataColumn(label: Text('%', style: headerTextStyle)),
+            DataColumn(label: Text('Asist', style: headerTextStyle)),
+            DataColumn(label: Text('Pts', style: headerTextStyle)),
+            DataColumn(label: Text('Hola', style: headerTextStyle)),
+            DataColumn(label: Text('Holis', style: headerTextStyle)),
+          ],
+          rows: datos.map((fila) {
+            return DataRow(
+              cells: <DataCell>[
+                DataCell(Text(fila['Team'].toString(), style: cellTextStyle)),
+                DataCell(Text(fila['Puntos POS'].toString(), style: cellTextStyle)),
+                DataCell(Text(fila['%'].toString(), style: cellTextStyle)),
+                DataCell(Text(fila['Asist'].toString(), style: cellTextStyle)),
+                DataCell(Text(fila['Pts'].toString(), style: cellTextStyle)),
+                DataCell(Text(fila['Hola'].toString(), style: cellTextStyle)),
+                DataCell(Text(fila['Holis'].toString(), style: cellTextStyle)),
+              ],
+            );
+          }).toList(),
         ),
-        dataRowColor: MaterialStateProperty.resolveWith<Color?>(
-          (Set<MaterialState> states) {
-            return AppColors.secondBlack; // Color de fondo para las filas de datos
-          },
-        ),
-        columns: <DataColumn>[
-          DataColumn(label: Text('Team', style: headerTextStyle)),
-          DataColumn(label: Text('Puntos POS', style: headerTextStyle)),
-          DataColumn(label: Text('%', style: headerTextStyle)),
-          DataColumn(label: Text('Asist', style: headerTextStyle)),
-          DataColumn(label: Text('Pts', style: headerTextStyle)),
-        ],
-        rows: datos.map((fila) {
-          return DataRow(
-            cells: <DataCell>[
-              DataCell(Text(fila['Team'].toString(), style: cellTextStyle)),
-              DataCell(Text(fila['Puntos POS'].toString(), style: cellTextStyle)),
-              DataCell(Text(fila['%'].toString(), style: cellTextStyle)),
-              DataCell(Text(fila['Asist'].toString(), style: cellTextStyle)),
-              DataCell(Text(fila['Pts'].toString(), style: cellTextStyle)),
-            ],
-          );
-        }).toList(),
       ),
     );
   }
