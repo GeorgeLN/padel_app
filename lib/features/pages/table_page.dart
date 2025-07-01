@@ -1,22 +1,30 @@
+// ignore_for_file: prefer_final_fields
+
 import 'package:flutter/material.dart';
 import 'package:padel_app/features/design/app_colors.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:padel_app/features/widgets/add_data_form.dart';
 
-class TablaEstadisticasWidget extends StatefulWidget {
+class TablePage extends StatefulWidget {
 
-  const TablaEstadisticasWidget({super.key});
+  const TablePage({super.key});
 
   @override
-  State<TablaEstadisticasWidget> createState() => _TablaEstadisticasWidgetState();
+  State<TablePage> createState() => _TablePageState();
 }
 
-class _TablaEstadisticasWidgetState extends State<TablaEstadisticasWidget> {
+class _TablePageState extends State<TablePage> {
   void _showAddDataForm(BuildContext context) {
     // Verifying AddDataForm usage
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      backgroundColor: AppColors.primaryBlack,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(18),
+        ),
+      ),
       builder: (_) {
         return Padding(
           padding: EdgeInsets.only(
@@ -38,11 +46,14 @@ class _TablaEstadisticasWidgetState extends State<TablaEstadisticasWidget> {
 
   List<Map<String, dynamic>> _dynamicTableData = [
     {
-      'Team': 'Jugador Inicial',
-      'Puntos POS': 100,
-      '%': '6%',
-      'Asist': 23,
-      'Pts': 30,
+      'TEAM': 'Jugador 1',
+      'PTS POS': 100,
+      '%': '6',
+      'ASIST': 23,
+      'PTS': 30,
+      'SUB CTG': 10,
+      'BON': 5,
+      'PEN': 2,
     }
   ];
 
@@ -84,6 +95,7 @@ class _TablaEstadisticasWidgetState extends State<TablaEstadisticasWidget> {
           ],
         ),
       ),
+      
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           _showAddDataForm(context);
@@ -258,46 +270,51 @@ class TablaDatosJugador extends StatelessWidget {
     return Container(
       width: size.width * 0.9, // Ancho similar a otros elementos
       margin: EdgeInsets.only(bottom: size.height * 0.06),
-      padding: EdgeInsets.symmetric(vertical: size.height * 0.015), // Padding interno
+      padding: EdgeInsets.symmetric(vertical: size.height * 0.02), // Padding interno
       decoration: BoxDecoration(
         color: AppColors.secondBlack,
         borderRadius: BorderRadius.circular(18),
       ),
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
-        child: DataTable(
-          headingRowColor: WidgetStateProperty.resolveWith<Color?>(
-            (Set<WidgetState> states) {
-              return AppColors.secondBlack; // Color de fondo para la fila de encabezados
-            },
+        child: Padding(
+          padding: EdgeInsets.symmetric(vertical: size.height * 0.02),
+          child: DataTable(
+            headingRowColor: WidgetStateProperty.resolveWith<Color?>(
+              (Set<WidgetState> states) {
+                return AppColors.secondBlack; // Color de fondo para la fila de encabezados
+              },
+            ),
+            dataRowColor: WidgetStateProperty.resolveWith<Color?>(
+              (Set<WidgetState> states) {
+                return AppColors.secondBlack; // Color de fondo para las filas de datos
+              },
+            ),
+            columns: <DataColumn>[
+              DataColumn(label: Text('TEAM', style: headerTextStyle)),
+              DataColumn(label: Text('PTS POS', style: headerTextStyle)),
+              DataColumn(label: Text('%', style: headerTextStyle)),
+              DataColumn(label: Text('ASIST', style: headerTextStyle)),
+              DataColumn(label: Text('PTS', style: headerTextStyle)),
+              DataColumn(label: Text('SUB CTG', style: headerTextStyle)),
+              DataColumn(label: Text('BON', style: headerTextStyle)),
+              DataColumn(label: Text('PEN', style: headerTextStyle)),
+            ],
+            rows: datos.map((fila) {
+              return DataRow(
+                cells: <DataCell>[
+                  DataCell(Text(fila['TEAM'].toString(), style: cellTextStyle)),
+                  DataCell(Text(fila['PTS POS'].toString(), style: cellTextStyle)),
+                  DataCell(Text(fila['%'].toString(), style: cellTextStyle)),
+                  DataCell(Text(fila['ASIST'].toString(), style: cellTextStyle)),
+                  DataCell(Text(fila['PTS'].toString(), style: cellTextStyle)),
+                  DataCell(Text(fila['SUB CTG'].toString(), style: cellTextStyle)),
+                  DataCell(Text(fila['BON'].toString(), style: cellTextStyle)),
+                  DataCell(Text(fila['PEN'].toString(), style: cellTextStyle)),
+                ],
+              );
+            }).toList(),
           ),
-          dataRowColor: WidgetStateProperty.resolveWith<Color?>(
-            (Set<WidgetState> states) {
-              return AppColors.secondBlack; // Color de fondo para las filas de datos
-            },
-          ),
-          columns: <DataColumn>[
-            DataColumn(label: Text('Team', style: headerTextStyle)),
-            DataColumn(label: Text('Puntos POS', style: headerTextStyle)),
-            DataColumn(label: Text('%', style: headerTextStyle)),
-            DataColumn(label: Text('Asist', style: headerTextStyle)),
-            DataColumn(label: Text('Pts', style: headerTextStyle)),
-            DataColumn(label: Text('Hola', style: headerTextStyle)),
-            DataColumn(label: Text('Holis', style: headerTextStyle)),
-          ],
-          rows: datos.map((fila) {
-            return DataRow(
-              cells: <DataCell>[
-                DataCell(Text(fila['Team'].toString(), style: cellTextStyle)),
-                DataCell(Text(fila['Puntos POS'].toString(), style: cellTextStyle)),
-                DataCell(Text(fila['%'].toString(), style: cellTextStyle)),
-                DataCell(Text(fila['Asist'].toString(), style: cellTextStyle)),
-                DataCell(Text(fila['Pts'].toString(), style: cellTextStyle)),
-                DataCell(Text(fila['Hola'].toString(), style: cellTextStyle)),
-                DataCell(Text(fila['Holis'].toString(), style: cellTextStyle)),
-              ],
-            );
-          }).toList(),
         ),
       ),
     );

@@ -1,7 +1,20 @@
 import 'package:flutter/material.dart';
-import 'package:padel_app/features/pages/table_page.dart';
+import 'package:padel_app/features/pages/_pages.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:padel_app/features/bloc/bottom_nav_cubit.dart';
 
-void main() => runApp(const MyApp());
+void main() {
+  runApp(
+    MultiBlocProvider(
+      providers: [
+        BlocProvider(
+          create: (context) => BottomNavCubit(),
+        ),
+      ],
+      child: const MyApp(),
+    ),
+  );
+}
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -15,12 +28,12 @@ class MyApp extends StatelessWidget {
       
         initialRoute: 'table',
         routes: {
-          'table': (context) => TablaEstadisticasWidget(),
+          'table': (context) => StartPage(),
         },
         onGenerateRoute: (settings) {
           if (settings.name == 'table') {
             return MaterialPageRoute(
-              builder: (context) => TablaEstadisticasWidget(),
+              builder: (context) => StartPage(),
             );
           }
           return null;
