@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "74367000248",
+    "project_id": "padel-app-93444",
+    "storage_bucket": "padel-app-93444.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:74367000248:android:29330911e8334bb6c15e4d",
+        "android_client_info": {
+          "package_name": "com.youthink.padelapp.padel_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDD34xMV-nvL3YI0eb9AfQ9EJ3i_JbPn6w"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

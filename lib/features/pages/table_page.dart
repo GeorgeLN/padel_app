@@ -46,11 +46,14 @@ class _TablePageState extends State<TablePage> {
 
   List<Map<String, dynamic>> _dynamicTableData = [
     {
-      'TEAM': 'Jugador 1',
+      'JUGADOR': 'Jugador 1',
       'PTS POS': 100,
-      '%': '6',
-      'ASIST': 23,
+      'PTS ANT': 100,
+      'VAR': '+',
       'PTS': 30,
+      'ASIST': 23,
+      'PTOS POS': 23,
+      'EFEC': '63%',
       'SUB CTG': 10,
       'BON': 5,
       'PEN': 2,
