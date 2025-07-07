@@ -1,12 +1,15 @@
 // ignore_for_file: prefer_final_fields
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:padel_app/features/design/app_colors.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:padel_app/features/widgets/add_data_form.dart';
+// import 'package:padel_app/features/widgets/add_data_form.dart'; // Comentado ya que su funcionalidad cambia
+import 'package:padel_app/models/user_model.dart'; // Importar el modelo Usuario
+import 'package:padel_app/viewmodels/auth_viewmodel.dart'; // Para el botón de cerrar sesión
+import 'package:provider/provider.dart'; // Para acceder al AuthViewModel
 
 class TablePage extends StatefulWidget {
-
   const TablePage({super.key});
 
   @override
@@ -14,81 +17,112 @@ class TablePage extends StatefulWidget {
 }
 
 class _TablePageState extends State<TablePage> {
-  void _showAddDataForm(BuildContext context) {
-    // Verifying AddDataForm usage
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: AppColors.primaryBlack,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(
-          top: Radius.circular(18),
-        ),
-      ),
-      builder: (_) {
-        return Padding(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom,
-            top: 20,
-            left: 20,
-            right: 20,
-          ),
-          child: AddDataForm(
-            onSave: (data) {
-              _addTableData(data);
-              Navigator.of(context).pop(); // Close the bottom sheet
-            },
-          ),
-        );
-      },
-    );
-  }
+  // void _showAddDataForm(BuildContext context) { // Comentado o redefinir su propósito
+  //   showModalBottomSheet(
+  //     context: context,
+  //     isScrollControlled: true,
+  //     backgroundColor: AppColors.primaryBlack,
+  //     shape: const RoundedRectangleBorder(
+  //       borderRadius: BorderRadius.vertical(
+  //         top: Radius.circular(18),
+  //       ),
+  //     ),
+  //     builder: (_) {
+  //       return Padding(
+  //         padding: EdgeInsets.only(
+  //           bottom: MediaQuery.of(context).viewInsets.bottom,
+  //           top: 20,
+  //           left: 20,
+  //           right: 20,
+  //         ),
+  //         // child: AddDataForm( // AddDataForm necesitaría ser adaptado o eliminado si ya no se usa
+  //         //   onSave: (data) {
+  //         //     // _addTableData(data); // Ya no se usa de esta forma
+  //         //     Navigator.of(context).pop();
+  //         //   },
+  //         // ),
+  //       );
+  //     },
+  //   );
+  // }
 
-  List<Map<String, dynamic>> _dynamicTableData = [
-    {
-      'JUGADOR': 'Jugador 1',
-      'PTS POS': 100,
-      'PTS ANT': 100,
-      'VAR': '+',
-      'PTS': 30,
-      'ASIST': 23,
-      'PTOS POS': 23,
-      'EFEC': '63%',
-      'SUB CTG': 10,
-      'BON': 5,
-      'PEN': 2,
-    }
-  ];
-
-  void _addTableData(Map<String, dynamic> newData) {
-    setState(() {
-      _dynamicTableData.add(newData);
-    });
-  }
+  // _dynamicTableData ya no se usa, los datos vendrán de Firestore
+  // List<Map<String, dynamic>> _dynamicTableData = [ ... ];
+  // void _addTableData(Map<String, dynamic> newData) { ... }
 
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
+    final authViewModel = Provider.of<AuthViewModel>(context, listen: false);
 
     return Scaffold(
       backgroundColor: AppColors.primaryBlack,
-      
+      appBar: AppBar( // AppBar agregada para el título y botón de logout
+        title: Text('Ranking de Jugadores', style: GoogleFonts.lato(color: AppColors.textWhite)),
+        backgroundColor: AppColors.secondBlack,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout, color: AppColors.textWhite),
+            onPressed: () async {
+              await authViewModel.cerrarSesion();
+              // AuthWrapper se encargará de redirigir a LoginScreen
+            },
+          )
+        ],
+      ),
       body: SingleChildScrollView(
         scrollDirection: Axis.vertical,
-
         child: Column(
           children: [
-            SearchText(size: size),
-        
-            RankingButton(size: size),
-        
+            SearchText(size: size), // Se mantiene si es para filtrar la tabla visualmente
+            RankingButton(size: size), // Se mantiene
             DropButton(
               size: size,
               name: 'General',
               icon: Icons.stadium,
             ),
-        
-            TablaDatosJugador(datos: _dynamicTableData),
+
+            // StreamBuilder para cargar datos de Firestore
+            StreamBuilder<QuerySnapshot>(
+              stream: FirebaseFirestore.instance.collection('usuarios').orderBy('puntos', descending: true).snapshots(), // Ordenar por puntos
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator(color: AppColors.primaryGreen));
+                }
+                if (snapshot.hasError) {
+                  return Center(child: Text('Error al cargar datos: ${snapshot.error}', style: GoogleFonts.lato(color: AppColors.textWhite)));
+                }
+                if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                  return Center(child: Text('No hay jugadores registrados.', style: GoogleFonts.lato(color: AppColors.textWhite)));
+                }
+
+                // Convertir QuerySnapshot a List<Usuario>
+                final List<Usuario> usuarios = snapshot.data!.docs.map((doc) {
+                  return Usuario.fromJson(doc.data() as Map<String, dynamic>);
+                }).toList();
+
+                // Mapear List<Usuario> al formato que espera TablaDatosJugador
+                // O idealmente, modificar TablaDatosJugador para que acepte List<Usuario>
+                final List<Map<String, dynamic>> datosParaTabla = usuarios.map((user) {
+                  return {
+                    // Columnas de la tabla: 'TEAM', 'PTS POS', '%', 'ASIST', 'PTS', 'SUB CTG', 'BON', 'PEN'
+                    'TEAM': user.nombre, // 'nombre' del modelo Usuario
+                    'PTS POS': user.puntos_pos,
+                    '%': user.efectividad.toStringAsFixed(1) + '%', // Formatear efectividad
+                    'ASIST': user.asistencias,
+                    'PTS': user.puntos,
+                    'SUB CTG': user.subcategoria,
+                    'BON': user.bonificaciones,
+                    'PEN': user.penalizaciones,
+                    // Campos extra de _dynamicTableData que no están en el modelo Usuario:
+                    // 'PTS ANT': 0, // Si necesitas estos, considera añadirlos al modelo o manejar por defecto
+                    // 'VAR': '+',
+                  };
+                }).toList();
+
+                return TablaDatosJugador(datos: datosParaTabla);
+              },
+            ),
 
             DropButton(
               size: size,
@@ -98,14 +132,15 @@ class _TablePageState extends State<TablePage> {
           ],
         ),
       ),
-      
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          _showAddDataForm(context);
-        },
-        backgroundColor: AppColors.primaryGreen,
-        child: const Icon(Icons.add, color: AppColors.textBlack),
-      ),
+      // FloatingActionButton ahora podría tener otro propósito o ser eliminado
+      // si la adición de usuarios es solo mediante el registro.
+      // floatingActionButton: FloatingActionButton(
+      //   onPressed: () {
+      //     // _showAddDataForm(context); // Su funcionalidad original cambió
+      //   },
+      //   backgroundColor: AppColors.primaryGreen,
+      //   child: const Icon(Icons.add, color: AppColors.textBlack),
+      // ),
     );
   }
 }
