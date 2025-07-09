@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:padel_app/features/design/app_colors.dart';
-import 'package:padel_app/models/user_model.dart';
-import 'package:padel_app/viewmodels/auth_viewmodel.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:padel_app/data/models/user_model.dart';
+import 'package:padel_app/data/viewmodels/auth_viewmodel.dart';
 import 'package:provider/provider.dart';
 
 class EditProfileDataPage extends StatefulWidget {
-  final Usuario usuario;
+  final String userId; // Cambiado de Usuario a String
 
-  const EditProfileDataPage({super.key, required this.usuario});
+  const EditProfileDataPage({super.key, required this.userId}); // Cambiado el constructor
 
   @override
   State<EditProfileDataPage> createState() => _EditProfileDataPageState();
@@ -16,37 +17,108 @@ class EditProfileDataPage extends StatefulWidget {
 
 class _EditProfileDataPageState extends State<EditProfileDataPage> {
   final _formKey = GlobalKey<FormState>();
-  late TextEditingController _nombreController;
-  late TextEditingController _descripcionController;
-  bool _isLoading = false;
+  Usuario? _usuario; // Para almacenar los datos del usuario cargado
+  bool _isLoading = true; // Iniciar en true para mostrar carga mientras se obtienen datos
+  bool _isSaving = false; // Para el estado de guardado
+
+  // Controladores para los campos editables
+  late TextEditingController _asistenciasController;
+  late TextEditingController _bonificacionesController;
+  late TextEditingController _efectividadController;
+  late TextEditingController _penalizacionesController;
+  late TextEditingController _puntosController;
+  late TextEditingController _puntosPosController;
+  late TextEditingController _rankingController;
+  late TextEditingController _subcategoriaController;
 
   @override
   void initState() {
     super.initState();
-    _nombreController = TextEditingController(text: widget.usuario.nombre);
-    _descripcionController = TextEditingController(text: widget.usuario.descripcionPerfil);
+    _asistenciasController = TextEditingController();
+    _bonificacionesController = TextEditingController();
+    _efectividadController = TextEditingController();
+    _penalizacionesController = TextEditingController();
+    _puntosController = TextEditingController();
+    _puntosPosController = TextEditingController();
+    _rankingController = TextEditingController();
+    _subcategoriaController = TextEditingController();
+    _loadUserData();
+  }
+
+  Future<void> _loadUserData() async {
+    setState(() {
+      _isLoading = true;
+    });
+    try {
+      DocumentSnapshot userDoc = await FirebaseFirestore.instance
+          .collection('usuarios')
+          .doc(widget.userId)
+          .get();
+      if (userDoc.exists) {
+        _usuario = Usuario.fromJson(userDoc.data() as Map<String, dynamic>);
+        // Inicializar controladores con los datos del usuario
+        _asistenciasController.text = _usuario!.asistencias.toString();
+        _bonificacionesController.text = _usuario!.bonificaciones.toString();
+        _efectividadController.text = _usuario!.efectividad.toString();
+        _penalizacionesController.text = _usuario!.penalizaciones.toString();
+        _puntosController.text = _usuario!.puntos.toString();
+        _puntosPosController.text = _usuario!.puntos_pos.toString();
+        _rankingController.text = _usuario!.ranking.toString();
+        _subcategoriaController.text = _usuario!.subcategoria.toString();
+      } else {
+        // Manejar el caso donde el usuario no se encuentra
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Usuario no encontrado.', style: GoogleFonts.lato()), backgroundColor: Colors.red),
+        );
+        Navigator.of(context).pop(); // Regresar si no se encuentra el usuario
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al cargar datos: $e', style: GoogleFonts.lato()), backgroundColor: Colors.red),
+      );
+      Navigator.of(context).pop(); // Regresar en caso de error
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
   }
 
   @override
   void dispose() {
-    _nombreController.dispose();
-    _descripcionController.dispose();
+    _asistenciasController.dispose();
+    _bonificacionesController.dispose();
+    _efectividadController.dispose();
+    _penalizacionesController.dispose();
+    _puntosController.dispose();
+    _puntosPosController.dispose();
+    _rankingController.dispose();
+    _subcategoriaController.dispose();
     super.dispose();
   }
 
   Future<void> _guardarCambios() async {
-    if (_formKey.currentState!.validate()) {
+    if (_formKey.currentState!.validate() && _usuario != null) {
       setState(() {
-        _isLoading = true;
+        _isSaving = true;
       });
 
-      Usuario usuarioActualizado = widget.usuario.copyWith(
-        nombre: _nombreController.text.trim(),
-        descripcionPerfil: _descripcionController.text.trim(),
+      Usuario usuarioActualizado = _usuario!.copyWith(
+        asistencias: int.tryParse(_asistenciasController.text) ?? _usuario!.asistencias,
+        bonificaciones: int.tryParse(_bonificacionesController.text) ?? _usuario!.bonificaciones,
+        efectividad: double.tryParse(_efectividadController.text) ?? _usuario!.efectividad,
+        penalizaciones: int.tryParse(_penalizacionesController.text) ?? _usuario!.penalizaciones,
+        puntos: int.tryParse(_puntosController.text) ?? _usuario!.puntos,
+        puntos_pos: int.tryParse(_puntosPosController.text) ?? _usuario!.puntos_pos,
+        ranking: int.tryParse(_rankingController.text) ?? _usuario!.ranking,
+        subcategoria: int.tryParse(_subcategoriaController.text) ?? _usuario!.subcategoria,
       );
 
       final authViewModel = Provider.of<AuthViewModel>(context, listen: false);
-      // Limpiar cualquier error anterior antes de intentar guardar
       authViewModel.clearErrorMessage();
       bool success = await authViewModel.actualizarDatosUsuario(usuarioActualizado);
 
@@ -54,7 +126,7 @@ class _EditProfileDataPageState extends State<EditProfileDataPage> {
       if (!mounted) return;
 
       setState(() {
-        _isLoading = false;
+        _isSaving = false; // Cambiado de _isLoading a _isSaving
       });
 
       if (success) {
@@ -85,38 +157,91 @@ class _EditProfileDataPageState extends State<EditProfileDataPage> {
     return Scaffold(
       backgroundColor: AppColors.primaryBlack,
       appBar: AppBar(
-        title: Text('Editar Perfil', style: GoogleFonts.lato(color: AppColors.textWhite, fontWeight: FontWeight.bold)),
+        title: Text('Editar Estadísticas', style: GoogleFonts.lato(color: AppColors.textWhite, fontWeight: FontWeight.bold)), // Título cambiado
         backgroundColor: AppColors.secondBlack,
         iconTheme: const IconThemeData(color: AppColors.textWhite),
         elevation: 0,
       ),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.all(size.width * 0.05),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: <Widget>[
-              _buildTextFormField(
-                controller: _nombreController,
-                labelText: 'Nombre Completo',
-                validatorText: 'Por favor, ingresa tu nombre.',
-                size: size,
-              ),
-              SizedBox(height: size.height * 0.025),
-              _buildTextFormField(
-                controller: _descripcionController,
-                labelText: 'Descripción del Perfil',
-                validatorText: 'Por favor, ingresa una descripción.',
-                maxLines: 5,
-                size: size,
-              ),
-              SizedBox(height: size.height * 0.04),
-              _isLoading
-                  ? const Center(child: CircularProgressIndicator(color: AppColors.primaryGreen))
-                  : ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primaryGreen,
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator(color: AppColors.primaryGreen))
+          : _usuario == null // Añadido chequeo por si _usuario es null después de carga
+              ? Center(child: Text('No se pudieron cargar los datos del usuario.', style: GoogleFonts.lato(color: AppColors.textWhite)))
+              : SingleChildScrollView(
+                  padding: EdgeInsets.all(size.width * 0.05),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: <Widget>[
+                        _buildTextFormField(
+                          controller: _asistenciasController,
+                          labelText: 'Asistencias',
+                          validatorText: 'Ingresa un número válido.',
+                          keyboardType: TextInputType.number,
+                          size: size,
+                        ),
+                        SizedBox(height: size.height * 0.025),
+                        _buildTextFormField(
+                          controller: _bonificacionesController,
+                          labelText: 'Bonificaciones',
+                          validatorText: 'Ingresa un número válido.',
+                          keyboardType: TextInputType.number,
+                          size: size,
+                        ),
+                        SizedBox(height: size.height * 0.025),
+                        _buildTextFormField(
+                          controller: _efectividadController,
+                          labelText: 'Efectividad (%)',
+                          validatorText: 'Ingresa un número válido (ej: 75.5).',
+                          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                          size: size,
+                        ),
+                        SizedBox(height: size.height * 0.025),
+                        _buildTextFormField(
+                          controller: _penalizacionesController,
+                          labelText: 'Penalizaciones',
+                          validatorText: 'Ingresa un número válido.',
+                          keyboardType: TextInputType.number,
+                          size: size,
+                        ),
+                        SizedBox(height: size.height * 0.025),
+                        _buildTextFormField(
+                          controller: _puntosController,
+                          labelText: 'Puntos',
+                          validatorText: 'Ingresa un número válido.',
+                          keyboardType: TextInputType.number,
+                          size: size,
+                        ),
+                        SizedBox(height: size.height * 0.025),
+                        _buildTextFormField(
+                          controller: _puntosPosController,
+                          labelText: 'Puntos de Posición',
+                          validatorText: 'Ingresa un número válido.',
+                          keyboardType: TextInputType.number,
+                          size: size,
+                        ),
+                        SizedBox(height: size.height * 0.025),
+                        _buildTextFormField(
+                          controller: _rankingController,
+                          labelText: 'Ranking',
+                          validatorText: 'Ingresa un número válido.',
+                          keyboardType: TextInputType.number,
+                          size: size,
+                        ),
+                        SizedBox(height: size.height * 0.025),
+                        _buildTextFormField(
+                          controller: _subcategoriaController,
+                          labelText: 'Subcategoría',
+                          validatorText: 'Ingresa un número válido.',
+                          keyboardType: TextInputType.number,
+                          size: size,
+                        ),
+                        SizedBox(height: size.height * 0.04),
+                        _isSaving // Cambiado de _isLoading a _isSaving
+                            ? const Center(child: CircularProgressIndicator(color: AppColors.primaryGreen))
+                            : ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: AppColors.primaryGreen,
                         padding: EdgeInsets.symmetric(vertical: size.height * 0.018),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12), // Bordes más redondeados
@@ -146,10 +271,12 @@ class _EditProfileDataPageState extends State<EditProfileDataPage> {
     required String validatorText,
     int? maxLines = 1,
     required Size size,
+    TextInputType? keyboardType, // Añadido keyboardType
   }) {
     return TextFormField(
       controller: controller,
       style: GoogleFonts.lato(color: AppColors.textWhite, fontSize: size.width * 0.04),
+      keyboardType: keyboardType, // Aplicado keyboardType
       decoration: InputDecoration(
         labelText: labelText,
         labelStyle: GoogleFonts.lato(color: AppColors.textLightGray.withOpacity(0.8), fontSize: size.width * 0.04),

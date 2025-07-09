@@ -51,6 +51,43 @@ class _TablePageState extends State<TablePage> {
   // List<Map<String, dynamic>> _dynamicTableData = [ ... ];
   // void _addTableData(Map<String, dynamic> newData) { ... }
 
+  Stream<List<QuerySnapshot>> _getUsersStream(String? currentUserId) {
+    final firestore = FirebaseFirestore.instance;
+    Stream<QuerySnapshot> loggedInUserStream;
+    Stream<QuerySnapshot> otherUsersStream;
+
+    if (currentUserId != null) {
+      loggedInUserStream = firestore
+          .collection('usuarios')
+          .where(FieldPath.documentId, isEqualTo: currentUserId)
+          .snapshots();
+      otherUsersStream = firestore
+          .collection('usuarios')
+          .where(FieldPath.documentId, isNotEqualTo: currentUserId)
+          .orderBy('puntos', descending: true)
+          .snapshots();
+    } else {
+      // Si no hay usuario logueado, devuelve todos ordenados por puntos
+      loggedInUserStream = Stream.value(EmptyQuerySnapshot()); // Stream vacío
+      otherUsersStream = firestore
+          .collection('usuarios')
+          .orderBy('puntos', descending: true)
+          .snapshots();
+    }
+
+    // Combina los dos streams. Necesitarás rxdart para StreamZip o hacer un manejo más manual.
+    // Por simplicidad, aquí usaremos un enfoque que puede no ser el más eficiente para UI en tiempo real
+    // pero demuestra la lógica. Para una app de producción, considera `StreamZip` de rxdart.
+    // Este es un ejemplo simplificado. En una app real, se manejaría con más cuidado la combinación de streams.
+    return Stream<List<QuerySnapshot>>.multi((controller) async {
+      await for (var loggedInUserSnap in loggedInUserStream) {
+        await for (var otherUsersSnap in otherUsersStream) {
+          controller.add([loggedInUserSnap, otherUsersSnap]);
+        }
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
@@ -84,8 +121,8 @@ class _TablePageState extends State<TablePage> {
             ),
 
             // StreamBuilder para cargar datos de Firestore
-            StreamBuilder<QuerySnapshot>(
-              stream: FirebaseFirestore.instance.collection('usuarios').orderBy('puntos', descending: true).snapshots(), // Ordenar por puntos
+            StreamBuilder<List<QuerySnapshot>>(
+              stream: _getUsersStream(authViewModel.usuarioActual?.uid),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator(color: AppColors.primaryGreen));
@@ -93,31 +130,41 @@ class _TablePageState extends State<TablePage> {
                 if (snapshot.hasError) {
                   return Center(child: Text('Error al cargar datos: ${snapshot.error}', style: GoogleFonts.lato(color: AppColors.textWhite)));
                 }
-                if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                if (!snapshot.hasData || snapshot.data == null || snapshot.data!.isEmpty) {
                   return Center(child: Text('No hay jugadores registrados.', style: GoogleFonts.lato(color: AppColors.textWhite)));
                 }
 
-                // Convertir QuerySnapshot a List<Usuario>
-                final List<Usuario> usuarios = snapshot.data!.docs.map((doc) {
-                  return Usuario.fromJson(doc.data() as Map<String, dynamic>);
-                }).toList();
+                final List<Usuario> usuarios = [];
+                final loggedInUserSnapshot = snapshot.data![0];
+                final otherUsersSnapshot = snapshot.data![1];
+
+                if (loggedInUserSnapshot.docs.isNotEmpty) {
+                  final loggedInUserDoc = loggedInUserSnapshot.docs.first;
+                  usuarios.add(Usuario.fromJson(loggedInUserDoc.data() as Map<String, dynamic>));
+                }
+
+                for (var doc in otherUsersSnapshot.docs) {
+                  usuarios.add(Usuario.fromJson(doc.data() as Map<String, dynamic>));
+                }
+
+                if (usuarios.isEmpty) {
+                  return Center(child: Text('No hay jugadores registrados.', style: GoogleFonts.lato(color: AppColors.textWhite)));
+                }
 
                 // Mapear List<Usuario> al formato que espera TablaDatosJugador
-                // O idealmente, modificar TablaDatosJugador para que acepte List<Usuario>
                 final List<Map<String, dynamic>> datosParaTabla = usuarios.map((user) {
                   return {
-                    // Columnas de la tabla: 'TEAM', 'PTS POS', '%', 'ASIST', 'PTS', 'SUB CTG', 'BON', 'PEN'
-                    'TEAM': user.nombre, // 'nombre' del modelo Usuario
+                    'TEAM': user.nombre,
                     'PTS POS': user.puntos_pos,
-                    '%': '${user.efectividad.toStringAsFixed(1)}%', // Formatear efectividad
+                    '%': '${user.efectividad.toStringAsFixed(1)}%',
                     'ASIST': user.asistencias,
                     'PTS': user.puntos,
                     'SUB CTG': user.subcategoria,
                     'BON': user.bonificaciones,
                     'PEN': user.penalizaciones,
-                    // Campos extra de _dynamicTableData que no están en el modelo Usuario:
-                    // 'PTS ANT': 0, // Si necesitas estos, considera añadirlos al modelo o manejar por defecto
-                    // 'VAR': '+',
+                    // Campos necesarios para la lógica de edición
+                    'id': user.id,
+                    'isCurrentUser': authViewModel.usuarioActual?.uid == user.id,
                   };
                 }).toList();
 
@@ -144,6 +191,21 @@ class _TablePageState extends State<TablePage> {
       // ),
     );
   }
+}
+
+// Clase auxiliar para el caso de Stream vacío
+class EmptyQuerySnapshot implements QuerySnapshot {
+  @override
+  List<DocumentChange> get docChanges => [];
+
+  @override
+  List<QueryDocumentSnapshot> get docs => [];
+
+  @override
+  SnapshotMetadata get metadata => throw UnimplementedError();
+
+  @override
+  int get size => 0;
 }
 
 class SearchText extends StatelessWidget {
@@ -306,6 +368,8 @@ class TablaDatosJugador extends StatelessWidget {
       color: AppColors.textWhite, // O AppColors.textLightGray si se prefiere
     );
 
+    // final authViewModel = Provider.of<AuthViewModel>(context, listen: false); // Necesario para obtener el usuario actual y navegar
+
     return Container(
       width: size.width * 0.9, // Ancho similar a otros elementos
       margin: EdgeInsets.only(bottom: size.height * 0.06),
@@ -338,8 +402,12 @@ class TablaDatosJugador extends StatelessWidget {
               DataColumn(label: Text('SUB CTG', style: headerTextStyle)),
               DataColumn(label: Text('BON', style: headerTextStyle)),
               DataColumn(label: Text('PEN', style: headerTextStyle)),
+              DataColumn(label: Text('ACCIONES', style: headerTextStyle)), // Nueva columna para el botón
             ],
             rows: datos.map((fila) {
+              bool isCurrentUser = fila['isCurrentUser'] ?? false;
+              String userId = fila['id'] ?? '';
+
               return DataRow(
                 cells: <DataCell>[
                   DataCell(Text(fila['TEAM'].toString(), style: cellTextStyle)),
@@ -350,6 +418,23 @@ class TablaDatosJugador extends StatelessWidget {
                   DataCell(Text(fila['SUB CTG'].toString(), style: cellTextStyle)),
                   DataCell(Text(fila['BON'].toString(), style: cellTextStyle)),
                   DataCell(Text(fila['PEN'].toString(), style: cellTextStyle)),
+                  DataCell(
+                    isCurrentUser
+                        ? IconButton(
+                            icon: const Icon(Icons.edit, color: AppColors.primaryGreen),
+                            onPressed: () {
+                              // Navegar a la pantalla de edición o mostrar un diálogo
+                              // Esto se implementará en el siguiente paso del plan
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => EditProfileDataPage(userId: userId),
+                                ),
+                              );
+                            },
+                          )
+                        : Container(), // No mostrar botón si no es el usuario actual
+                  ),
                 ],
               );
             }).toList(),
