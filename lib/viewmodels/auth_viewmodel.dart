@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:padel_app/models/user_model.dart'; // Asegúrate que la ruta sea correcta
+import 'package:padel_app/models/user_model.dart';
 
 class AuthViewModel extends ChangeNotifier {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -34,7 +34,6 @@ class AuthViewModel extends ChangeNotifier {
     _setLoading(true);
     _clearError();
     try {
-      // 1. Crear usuario en Firebase Auth
       UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
         email: email,
         password: password,
@@ -43,13 +42,11 @@ class AuthViewModel extends ChangeNotifier {
       User? firebaseUser = userCredential.user;
 
       if (firebaseUser != null) {
-        // 2. Crear objeto Usuario con todos los datos
         Usuario nuevoUsuario = Usuario(
           uid: firebaseUser.uid,
           correoElectronico: email,
           nombre: nombre,
           descripcionPerfil: descripcionPerfil,
-          // Los campos numéricos se inicializan a 0 por defecto según el modelo
           asistencias: 0,
           bonificaciones: 0,
           efectividad: 0.0,
@@ -60,7 +57,6 @@ class AuthViewModel extends ChangeNotifier {
           subcategoria: 0,
         );
 
-        // 3. Guardar el objeto Usuario en Firestore
         await _firestore
             .collection('usuarios')
             .doc(firebaseUser.uid)
@@ -103,16 +99,13 @@ class AuthViewModel extends ChangeNotifier {
   }
 
   Future<void> cerrarSesion() async {
-    _clearError(); // Limpiar errores antes de cerrar sesión
+    _clearError();
     try {
       await _auth.signOut();
-      notifyListeners(); // Notificar para actualizar la UI si depende del estado de auth
+      notifyListeners();
     } catch (e) {
-      // En general, signOut no debería fallar catastróficamente,
-      // pero es bueno tener un catch por si acaso.
-      // Podrías loggear este error si es necesario.
       _errorMessage = "Error al cerrar sesión: ${e.toString()}";
-      notifyListeners(); // Notificar si hay error para mostrarlo
+      notifyListeners();
     }
   }
 
@@ -132,6 +125,51 @@ class AuthViewModel extends ChangeNotifier {
         return 'Este usuario ha sido deshabilitado.';
       default:
         return 'Ocurrió un error de autenticación.';
+    }
+  }
+
+  Future<Usuario?> obtenerDatosUsuarioActual() async {
+    _clearError();
+    User? firebaseUser = _auth.currentUser;
+    if (firebaseUser != null) {
+      try {
+        DocumentSnapshot<Map<String, dynamic>> userDoc =
+            await _firestore.collection('usuarios').doc(firebaseUser.uid).get();
+        if (userDoc.exists) {
+          return Usuario.fromJson(userDoc.data()!);
+        } else {
+          _errorMessage = "No se encontraron datos para este usuario.";
+          notifyListeners();
+          return null;
+        }
+      } catch (e) {
+        _errorMessage = "Error al obtener datos del usuario: ${e.toString()}";
+        notifyListeners();
+        return null;
+      }
+    } else {
+      _errorMessage = "No hay usuario autenticado."; // Mantener este mensaje por si se llama sin estar logueado
+      notifyListeners();
+      return null;
+    }
+  }
+
+  Future<bool> actualizarDatosUsuario(Usuario usuario) async {
+    _setLoading(true);
+    _clearError();
+    try {
+      await _firestore
+          .collection('usuarios')
+          .doc(usuario.uid)
+          .update(usuario.toJson());
+      _setLoading(false);
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _errorMessage = "Error al actualizar datos del usuario: ${e.toString()}";
+      _setLoading(false);
+      notifyListeners();
+      return false;
     }
   }
 }
