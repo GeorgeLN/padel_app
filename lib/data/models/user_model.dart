@@ -48,7 +48,7 @@ class Usuario {
   // Método factory para crear un objeto Usuario desde un Map (de Firestore)
   factory Usuario.fromJson(Map<String, dynamic> json) {
     return Usuario(
-      uid: json['uid'] as String,
+      uid: json['uid'] as String? ?? "",
       correoElectronico: json['correoElectronico'] as String,
       nombre: json['nombre'] as String,
       descripcionPerfil: json['descripcionPerfil'] as String,

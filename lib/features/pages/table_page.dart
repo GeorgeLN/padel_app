@@ -1,11 +1,14 @@
+// ignore_for_file: prefer_final_fields
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:padel_app/features/design/app_colors.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:padel_app/models/user_model.dart';
-import 'package:padel_app/viewmodels/auth_viewmodel.dart';
-import 'package:provider/provider.dart';
-import 'package:padel_app/features/pages/edit_profile_data_page.dart';
+// import 'package:padel_app/features/widgets/add_data_form.dart'; // Comentado ya que su funcionalidad cambia
+import 'package:padel_app/data/models/user_model.dart'; // Importar el modelo Usuario
+import 'package:padel_app/data/viewmodels/auth_viewmodel.dart'; // Para el botón de cerrar sesión
+import 'package:padel_app/features/pages/_pages.dart';
+import 'package:provider/provider.dart'; // Para acceder al AuthViewModel
 
 class TablePage extends StatefulWidget {
   const TablePage({super.key});
@@ -15,9 +18,38 @@ class TablePage extends StatefulWidget {
 }
 
 class _TablePageState extends State<TablePage> {
-  String _searchTerm = '';
-  // TODO: Implementar lógica de filtros si es necesario para 'General' y 'Mensual'
-  // String _filterType = 'General';
+  // void _showAddDataForm(BuildContext context) { // Comentado o redefinir su propósito
+  //   showModalBottomSheet(
+  //     context: context,
+  //     isScrollControlled: true,
+  //     backgroundColor: AppColors.primaryBlack,
+  //     shape: const RoundedRectangleBorder(
+  //       borderRadius: BorderRadius.vertical(
+  //         top: Radius.circular(18),
+  //       ),
+  //     ),
+  //     builder: (_) {
+  //       return Padding(
+  //         padding: EdgeInsets.only(
+  //           bottom: MediaQuery.of(context).viewInsets.bottom,
+  //           top: 20,
+  //           left: 20,
+  //           right: 20,
+  //         ),
+  //         // child: AddDataForm( // AddDataForm necesitaría ser adaptado o eliminado si ya no se usa
+  //         //   onSave: (data) {
+  //         //     // _addTableData(data); // Ya no se usa de esta forma
+  //         //     Navigator.of(context).pop();
+  //         //   },
+  //         // ),
+  //       );
+  //     },
+  //   );
+  // }
+
+  // _dynamicTableData ya no se usa, los datos vendrán de Firestore
+  // List<Map<String, dynamic>> _dynamicTableData = [ ... ];
+  // void _addTableData(Map<String, dynamic> newData) { ... }
 
   @override
   Widget build(BuildContext context) {
@@ -26,147 +58,126 @@ class _TablePageState extends State<TablePage> {
 
     return Scaffold(
       backgroundColor: AppColors.primaryBlack,
-      appBar: AppBar(
-        title: Text('Ranking de Jugadores', style: GoogleFonts.lato(color: AppColors.textWhite, fontWeight: FontWeight.bold)),
+      appBar: AppBar( // AppBar agregada para el título y botón de logout
+        title: Text('Ranking de Jugadores', style: GoogleFonts.lato(color: AppColors.textWhite)),
         backgroundColor: AppColors.secondBlack,
-        elevation: 0, // Sin sombra para un look más plano
         actions: [
           IconButton(
             icon: const Icon(Icons.logout, color: AppColors.textWhite),
-            tooltip: 'Cerrar Sesión',
             onPressed: () async {
               await authViewModel.cerrarSesion();
-              // AuthWrapper debería manejar la navegación a LoginScreen
+              Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => AuthWrapper()));
             },
           )
         ],
       ),
-      body: Column( // Usar Column en lugar de SingleChildScrollView directo para mejor estructura
-        children: [
-          SearchWidget( // Widget de búsqueda renombrado y estilizado
-            size: size,
-            onChanged: (value) {
-              setState(() {
-                _searchTerm = value.toLowerCase();
-              });
-            },
-          ),
-          // TODO: Considerar si estos botones son filtros o acciones separadas
-          // Por ahora, se mantienen visualmente pero sin funcionalidad de filtrado de datos de Firestore
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: size.width * 0.05, vertical: size.height * 0.01),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                RankingFilterChip( // Botón de Ranking estilizado
-                  size: size,
-                  label: 'Ranking Global',
-                  isSelected: true, // Ejemplo, manejar estado si es un filtro
-                  onTap: () { /* Lógica de filtro */ },
-                ),
-                // Puedes añadir más filtros aquí si es necesario
-              ],
+      body: SingleChildScrollView(
+        scrollDirection: Axis.vertical,
+        child: Column(
+          children: [
+            SearchText(size: size), // Se mantiene si es para filtrar la tabla visualmente
+            RankingButton(size: size), // Se mantiene
+            DropButton(
+              size: size,
+              name: 'General',
+              icon: Icons.stadium,
             ),
-          ),
-          Expanded( // Expanded para que StreamBuilder ocupe el espacio restante
-            child: StreamBuilder<QuerySnapshot>(
-              stream: FirebaseFirestore.instance.collection('usuarios').orderBy('puntos', descending: true).snapshots(),
+
+            // StreamBuilder para cargar datos de Firestore
+            StreamBuilder<QuerySnapshot>(
+              stream: FirebaseFirestore.instance.collection('usuarios').orderBy('puntos', descending: true).snapshots(), // Ordenar por puntos
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator(color: AppColors.primaryGreen));
                 }
                 if (snapshot.hasError) {
-                  return Center(child: Text('Error: ${snapshot.error}', style: GoogleFonts.lato(color: AppColors.textWhite)));
+                  return Center(child: Text('Error al cargar datos: ${snapshot.error}', style: GoogleFonts.lato(color: AppColors.textWhite)));
                 }
                 if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
                   return Center(child: Text('No hay jugadores registrados.', style: GoogleFonts.lato(color: AppColors.textWhite)));
                 }
 
-                List<Usuario> usuarios = snapshot.data!.docs.map((doc) {
+                // Convertir QuerySnapshot a List<Usuario>
+                final List<Usuario> usuarios = snapshot.data!.docs.map((doc) {
                   return Usuario.fromJson(doc.data() as Map<String, dynamic>);
                 }).toList();
 
-                final String? currentUserUid = authViewModel.currentUser?.uid;
+                // Mapear List<Usuario> al formato que espera TablaDatosJugador
+                // O idealmente, modificar TablaDatosJugador para que acepte List<Usuario>
+                final List<Map<String, dynamic>> datosParaTabla = usuarios.map((user) {
+                  return {
+                    // Columnas de la tabla: 'TEAM', 'PTS POS', '%', 'ASIST', 'PTS', 'SUB CTG', 'BON', 'PEN'
+                    'TEAM': user.nombre, // 'nombre' del modelo Usuario
+                    'PTS POS': user.puntos_pos,
+                    '%': '${user.efectividad.toStringAsFixed(1)}%', // Formatear efectividad
+                    'ASIST': user.asistencias,
+                    'PTS': user.puntos,
+                    'SUB CTG': user.subcategoria,
+                    'BON': user.bonificaciones,
+                    'PEN': user.penalizaciones,
+                    // Campos extra de _dynamicTableData que no están en el modelo Usuario:
+                    // 'PTS ANT': 0, // Si necesitas estos, considera añadirlos al modelo o manejar por defecto
+                    // 'VAR': '+',
+                  };
+                }).toList();
 
-                // Filtrar por término de búsqueda (nombre)
-                if (_searchTerm.isNotEmpty) {
-                  usuarios = usuarios.where((user) => user.nombre.toLowerCase().contains(_searchTerm)).toList();
-                }
-
-                // Reordenar para el usuario actual
-                if (currentUserUid != null) {
-                  usuarios.sort((a, b) {
-                    if (a.uid == currentUserUid) return -1;
-                    if (b.uid == currentUserUid) return 1;
-                    return b.puntos.compareTo(a.puntos); // Mantener orden por puntos para los demás
-                  });
-                }
-
-                if (usuarios.isEmpty && _searchTerm.isNotEmpty) {
-                   return Center(child: Text('No se encontraron jugadores con "$_searchTerm".', style: GoogleFonts.lato(color: AppColors.textWhite)));
-                }
-
-
-                return TablaDatosJugador(
-                  usuarios: usuarios,
-                  currentUserUid: currentUserUid,
-                  size: size, // Pasar size
-                );
+                return TablaDatosJugador(datos: datosParaTabla);
               },
             ),
-          ),
-          // Los DropButton podrían ser reemplazados por filtros o eliminados si no son necesarios
-          // _buildFilterSection(size),
-        ],
+
+            DropButton(
+              size: size,
+              name: 'Mensual',
+              icon: Icons.numbers,
+            ),
+          ],
+        ),
       ),
+      // FloatingActionButton ahora podría tener otro propósito o ser eliminado
+      // si la adición de usuarios es solo mediante el registro.
+      // floatingActionButton: FloatingActionButton(
+      //   onPressed: () {
+      //     // _showAddDataForm(context); // Su funcionalidad original cambió
+      //   },
+      //   backgroundColor: AppColors.primaryGreen,
+      //   child: const Icon(Icons.add, color: AppColors.textBlack),
+      // ),
     );
   }
-
-  // Widget _buildFilterSection(Size size) { // Ejemplo si se quieren mantener los DropButton como filtros
-  //   return Padding(
-  //     padding: EdgeInsets.symmetric(horizontal: size.width * 0.05, vertical: size.height * 0.02),
-  //     child: Row(
-  //       mainAxisAlignment: MainAxisAlignment.spaceAround,
-  //       children: [
-  //         DropButton(size: size, name: 'General', icon: Icons.stadium, onTap: () => setState(() => _filterType = 'General')),
-  //         DropButton(size: size, name: 'Mensual', icon: Icons.calendar_today, onTap: () => setState(() => _filterType = 'Mensual')),
-  //       ],
-  //     ),
-  //   );
-  // }
 }
 
-class SearchWidget extends StatelessWidget { // Renombrado de SearchText
-  const SearchWidget({
+class SearchText extends StatelessWidget {
+  const SearchText({
     super.key,
     required this.size,
-    required this.onChanged,
   });
 
   final Size size;
-  final ValueChanged<String> onChanged;
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: size.width * 0.05, vertical: size.height * 0.02),
-      child: TextFormField(
-        onChanged: onChanged,
-        style: GoogleFonts.lato(color: AppColors.textWhite, fontSize: size.width * 0.04),
-        decoration: InputDecoration(
-          prefixIcon: Icon(Icons.search, color: AppColors.textLightGray.withOpacity(0.7), size: size.width * 0.055),
-          filled: true,
-          fillColor: AppColors.secondBlack,
-          hintText: 'Buscar jugador...',
-          hintStyle: GoogleFonts.lato(color: AppColors.textLightGray.withOpacity(0.7), fontSize: size.width * 0.04),
-          contentPadding: EdgeInsets.symmetric(vertical: size.height * 0.018, horizontal: size.width * 0.04),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: AppColors.textLightGray.withOpacity(0.3)),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: AppColors.primaryGreen, width: 1.5),
+    return Center(
+      child: Container(
+        width: size.width * 0.9,
+        margin: EdgeInsets.only(top: size.height * 0.02, bottom: size.height * 0.02),
+        child: TextFormField(
+          style: GoogleFonts.lato(color: AppColors.textLightGray),
+          decoration: InputDecoration(
+            prefixIcon: const Icon(Icons.search, color: AppColors.textLightGray,),
+            filled: true,
+            fillColor: AppColors.secondBlack,
+            hintText: 'Busca una competición',
+            hintStyle: GoogleFonts.lato(color: AppColors.textLightGray),
+    
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(18),
+              borderSide: const BorderSide(color: AppColors.primaryBlack),
+            ),
+    
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(18),
+              borderSide: const BorderSide(color: AppColors.textLightGray),
+            ),
           ),
         ),
       ),
@@ -174,181 +185,171 @@ class SearchWidget extends StatelessWidget { // Renombrado de SearchText
   }
 }
 
-class RankingFilterChip extends StatelessWidget { // Renombrado de RankingButton
-  const RankingFilterChip({
+class DropButton extends StatelessWidget {
+  const DropButton({
     super.key,
     required this.size,
-    required this.label,
-    required this.isSelected,
-    required this.onTap,
+    required this.name,
+    required this.icon,
   });
 
   final Size size;
-  final String label;
-  final bool isSelected;
-  final VoidCallback onTap;
+  final String name;
+  final IconData icon;
 
   @override
   Widget build(BuildContext context) {
-    return ChoiceChip(
-      label: Text(label),
-      selected: isSelected,
-      onSelected: (selected) => onTap(),
-      backgroundColor: AppColors.secondBlack,
-      selectedColor: AppColors.primaryGreen,
-      labelStyle: GoogleFonts.lato(
-        color: isSelected ? AppColors.textBlack : AppColors.textWhite,
-        fontSize: size.width * 0.038,
-        fontWeight: FontWeight.bold,
-      ),
-      padding: EdgeInsets.symmetric(horizontal: size.width * 0.03, vertical: size.height * 0.01),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(10),
-        side: BorderSide(color: isSelected ? AppColors.primaryGreen : AppColors.textLightGray.withOpacity(0.5))
+    return Container(
+      width: size.width * 0.9,
+      height: size.height * 0.08,
+      margin: EdgeInsets.only(bottom: size.height * 0.02),
+      
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          CircleAvatar(
+            radius: size.width * 0.075,
+            backgroundColor: AppColors.secondBlack,
+            child: Icon(icon, color: AppColors.textWhite, size: size.width * 0.08),
+          ),
+    
+          Container(
+            margin: EdgeInsets.only(right: size.width * 0.4),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+            
+              children: [
+                Text(
+                  name,
+                  style: GoogleFonts.lato(
+                    color: AppColors.textWhite,
+                    fontSize: size.width * 0.04,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Text(
+                  'Torneo',
+                  style: GoogleFonts.lato(
+                    color: AppColors.textLightGray,
+                    fontSize: size.width * 0.04,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          ),
+    
+          IconButton(
+            onPressed: (){
+              //ACTIONS HERE
+            },
+            icon: Icon(Icons.arrow_forward_ios_rounded, color: AppColors.textWhite, size: size.width * 0.05),
+          ),
+        ],
       ),
     );
   }
 }
 
+class RankingButton extends StatelessWidget {
+  const RankingButton({
+    super.key,
+    required this.size,
+  });
 
-// class DropButton extends StatelessWidget { // Mantenido por si se reutiliza para filtros
-//   const DropButton({
-//     super.key,
-//     required this.size,
-//     required this.name,
-//     required this.icon,
-//     required this.onTap,
-//   });
-
-//   final Size size;
-//   final String name;
-//   final IconData icon;
-//   final VoidCallback onTap;
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return InkWell( // Para efecto ripple
-//       onTap: onTap,
-//       borderRadius: BorderRadius.circular(12),
-//       child: Container(
-//         padding: EdgeInsets.symmetric(horizontal: size.width * 0.03, vertical: size.height * 0.01),
-//         decoration: BoxDecoration(
-//           color: AppColors.secondBlack,
-//           borderRadius: BorderRadius.circular(12),
-//           boxShadow: [
-//             BoxShadow(
-//               color: Colors.black.withOpacity(0.2),
-//               blurRadius: 4,
-//               offset: Offset(0,2),
-//             )
-//           ]
-//         ),
-//         child: Row(
-//           mainAxisSize: MainAxisSize.min,
-//           children: [
-//             Icon(icon, color: AppColors.textWhite, size: size.width * 0.055),
-//             SizedBox(width: size.width * 0.02),
-//             Text(
-//               name,
-//               style: GoogleFonts.lato(
-//                 color: AppColors.textWhite,
-//                 fontSize: size.width * 0.04,
-//                 fontWeight: FontWeight.bold,
-//               ),
-//             ),
-//             SizedBox(width: size.width * 0.01),
-//             Icon(Icons.arrow_drop_down, color: AppColors.textWhite, size: size.width * 0.05),
-//           ],
-//         ),
-//       ),
-//     );
-//   }
-// }
-
-
-class TablaDatosJugador extends StatelessWidget {
-  final List<Usuario> usuarios;
-  final String? currentUserUid;
-  final Size size; // Recibir size
-
-  const TablaDatosJugador({super.key, required this.usuarios, this.currentUserUid, required this.size});
+  final Size size;
 
   @override
   Widget build(BuildContext context) {
+    return Container(
+      width: size.width * 0.3,
+      height: size.height * 0.05,
+      margin: EdgeInsets.only(right: size.width * 0.6, bottom: size.height * 0.02),
+      child: OutlinedButton(
+        onPressed: (){
+          //ACTIONS HERE
+        },
+    
+        style: OutlinedButton.styleFrom(
+          backgroundColor: AppColors.primaryGreen,
+          side: const BorderSide(color: AppColors.primaryGreen),
+        ),
+        child: Text(
+          'Ranking',
+          style: GoogleFonts.lato(
+            color: AppColors.textBlack,
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class TablaDatosJugador extends StatelessWidget {
+  final List<Map<String, dynamic>> datos;
+
+  const TablaDatosJugador({super.key, required this.datos});
+
+  @override
+  Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size; // Obtener size para el margin
+
     TextStyle headerTextStyle = GoogleFonts.lato(
       color: AppColors.textWhite,
       fontWeight: FontWeight.bold,
-      fontSize: size.width * 0.028, // Ligeramente más pequeño para más columnas
     );
 
     TextStyle cellTextStyle = GoogleFonts.lato(
-      color: AppColors.textWhite,
-      fontSize: size.width * 0.028,
+      color: AppColors.textWhite, // O AppColors.textLightGray si se prefiere
     );
 
     return Container(
-      width: size.width, // Ocupar todo el ancho disponible
-      margin: EdgeInsets.only(bottom: size.height * 0.02), // Margen inferior
-      child: SingleChildScrollView( // Scroll horizontal para la tabla
+      width: size.width * 0.9, // Ancho similar a otros elementos
+      margin: EdgeInsets.only(bottom: size.height * 0.06),
+      padding: EdgeInsets.symmetric(vertical: size.height * 0.02), // Padding interno
+      decoration: BoxDecoration(
+        color: AppColors.secondBlack,
+        borderRadius: BorderRadius.circular(18),
+      ),
+      child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
-        physics: const BouncingScrollPhysics(),
-        child: ConstrainedBox( // Asegurar que DataTable tenga un ancho mínimo si no hay suficientes datos
-            constraints: BoxConstraints(minWidth: size.width),
-            child: DataTable(
-            columnSpacing: size.width * 0.035, // Espacio entre columnas ajustado
-            headingRowHeight: size.height * 0.055,
-            dataRowMinHeight: size.height * 0.05,
-            dataRowMaxHeight: size.height * 0.065, // Ligeramente más alto para el botón
-            headingRowColor: WidgetStateProperty.resolveWith<Color?>((_) => AppColors.primaryBlack.withOpacity(0.5)), // Fondo oscuro para encabezado
+        child: Padding(
+          padding: EdgeInsets.symmetric(vertical: size.height * 0.02),
+          child: DataTable(
+            headingRowColor: WidgetStateProperty.resolveWith<Color?>(
+              (Set<WidgetState> states) {
+                return AppColors.secondBlack; // Color de fondo para la fila de encabezados
+              },
+            ),
+            dataRowColor: WidgetStateProperty.resolveWith<Color?>(
+              (Set<WidgetState> states) {
+                return AppColors.secondBlack; // Color de fondo para las filas de datos
+              },
+            ),
             columns: <DataColumn>[
-              DataColumn(label: Text('JUGADOR', style: headerTextStyle)),
-              DataColumn(label: Text('PUNTOS', style: headerTextStyle)),
-              DataColumn(label: Text('EFECT %', style: headerTextStyle)),
-              DataColumn(label: Text('ASIST.', style: headerTextStyle)),
-              DataColumn(label: Text('P. POS', style: headerTextStyle)),
-              DataColumn(label: Text('ACCIÓN', style: headerTextStyle)),
+              DataColumn(label: Text('TEAM', style: headerTextStyle)),
+              DataColumn(label: Text('PTS POS', style: headerTextStyle)),
+              DataColumn(label: Text('%', style: headerTextStyle)),
+              DataColumn(label: Text('ASIST', style: headerTextStyle)),
+              DataColumn(label: Text('PTS', style: headerTextStyle)),
+              DataColumn(label: Text('SUB CTG', style: headerTextStyle)),
+              DataColumn(label: Text('BON', style: headerTextStyle)),
+              DataColumn(label: Text('PEN', style: headerTextStyle)),
             ],
-            rows: usuarios.map((usuario) {
-              bool isCurrentUser = usuario.uid == currentUserUid;
+            rows: datos.map((fila) {
               return DataRow(
-                color: WidgetStateProperty.resolveWith<Color?>((_) {
-                  if (isCurrentUser) return AppColors.primaryGreen.withOpacity(0.15);
-                  return Colors.transparent; // Fondo transparente para filas normales
-                }),
                 cells: <DataCell>[
-                  DataCell(
-                    Tooltip( // Tooltip para nombres largos
-                      message: usuario.nombre,
-                      child: ConstrainedBox(
-                        constraints: BoxConstraints(maxWidth: size.width * 0.25), // Ancho máximo para nombre
-                        child: Text(usuario.nombre, style: cellTextStyle, overflow: TextOverflow.ellipsis),
-                      ),
-                    )
-                  ),
-                  DataCell(Text(usuario.puntos.toString(), style: cellTextStyle)),
-                  DataCell(Text('${(usuario.efectividad * 100).toStringAsFixed(0)}%', style: cellTextStyle)),
-                  DataCell(Text(usuario.asistencias.toString(), style: cellTextStyle)),
-                  DataCell(Text(usuario.puntos_pos.toString(), style: cellTextStyle)),
-                  DataCell(
-                    isCurrentUser
-                        ? Center( // Centrar el botón
-                            child: IconButton(
-                              padding: EdgeInsets.zero, // Quitar padding extra
-                              constraints: const BoxConstraints(), // Quitar constraints extra
-                              icon: Icon(Icons.edit_note_rounded, color: AppColors.primaryGreen, size: size.width * 0.05),
-                              tooltip: 'Editar Perfil',
-                              onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => EditProfileDataPage(usuario: usuario),
-                                  ),
-                                );
-                              },
-                            ),
-                          )
-                        : const SizedBox.shrink(),
-                  ),
+                  DataCell(Text(fila['TEAM'].toString(), style: cellTextStyle)),
+                  DataCell(Text(fila['PTS POS'].toString(), style: cellTextStyle)),
+                  DataCell(Text(fila['%'].toString(), style: cellTextStyle)),
+                  DataCell(Text(fila['ASIST'].toString(), style: cellTextStyle)),
+                  DataCell(Text(fila['PTS'].toString(), style: cellTextStyle)),
+                  DataCell(Text(fila['SUB CTG'].toString(), style: cellTextStyle)),
+                  DataCell(Text(fila['BON'].toString(), style: cellTextStyle)),
+                  DataCell(Text(fila['PEN'].toString(), style: cellTextStyle)),
                 ],
               );
             }).toList(),
