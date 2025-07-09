@@ -34,7 +34,6 @@ class AuthViewModel extends ChangeNotifier {
     _setLoading(true);
     _clearError();
     try {
-      // 1. Crear usuario en Firebase Auth
       UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
         email: email,
         password: password,
@@ -43,13 +42,11 @@ class AuthViewModel extends ChangeNotifier {
       User? firebaseUser = userCredential.user;
 
       if (firebaseUser != null) {
-        // 2. Crear objeto Usuario con todos los datos
         Usuario nuevoUsuario = Usuario(
           uid: firebaseUser.uid,
           correoElectronico: email,
           nombre: nombre,
           descripcionPerfil: descripcionPerfil,
-          // Los campos numéricos se inicializan a 0 por defecto según el modelo
           asistencias: 0,
           bonificaciones: 0,
           efectividad: 0.0,
@@ -60,7 +57,6 @@ class AuthViewModel extends ChangeNotifier {
           subcategoria: 0,
         );
 
-        // 3. Guardar el objeto Usuario en Firestore
         await _firestore
             .collection('usuarios')
             .doc(firebaseUser.uid)
@@ -103,16 +99,13 @@ class AuthViewModel extends ChangeNotifier {
   }
 
   Future<void> cerrarSesion() async {
-    _clearError(); // Limpiar errores antes de cerrar sesión
+    _clearError();
     try {
       await _auth.signOut();
-      notifyListeners(); // Notificar para actualizar la UI si depende del estado de auth
+      notifyListeners();
     } catch (e) {
-      // En general, signOut no debería fallar catastróficamente,
-      // pero es bueno tener un catch por si acaso.
-      // Podrías loggear este error si es necesario.
       _errorMessage = "Error al cerrar sesión: ${e.toString()}";
-      notifyListeners(); // Notificar si hay error para mostrarlo
+      notifyListeners();
     }
   }
 
@@ -135,9 +128,8 @@ class AuthViewModel extends ChangeNotifier {
     }
   }
 
-  // Nueva función para obtener los datos del usuario actual
   Future<Usuario?> obtenerDatosUsuarioActual() async {
-    _clearError();
+    _clearError(); // No notificar aquí para no limpiar errores de otras operaciones
     User? firebaseUser = _auth.currentUser;
     if (firebaseUser != null) {
       try {
@@ -147,7 +139,7 @@ class AuthViewModel extends ChangeNotifier {
           return Usuario.fromJson(userDoc.data()!);
         } else {
           _errorMessage = "No se encontraron datos para este usuario.";
-          notifyListeners();
+          notifyListeners(); // Notificar solo si hay error específico de esta función
           return null;
         }
       } catch (e) {
@@ -156,8 +148,11 @@ class AuthViewModel extends ChangeNotifier {
         return null;
       }
     } else {
-      _errorMessage = "No hay usuario autenticado.";
-      notifyListeners();
+      // No establecer _errorMessage aquí si es una condición esperada (ej. usuario no logueado)
+      // Dejar que la UI maneje la ausencia de un usuario.
+      // Si es un error inesperado, entonces sí.
+      // _errorMessage = "No hay usuario autenticado.";
+      // notifyListeners();
       return null;
     }
   }
@@ -171,10 +166,7 @@ class AuthViewModel extends ChangeNotifier {
           .doc(usuario.uid)
           .update(usuario.toJson());
       _setLoading(false);
-      // Opcional: podrías querer actualizar algún estado local del usuario si lo mantienes en el AuthViewModel
-      // o notificar a los listeners que los datos del usuario podrían haber cambiado.
-      // Por ahora, solo notificamos que la carga ha terminado.
-      notifyListeners(); // Para actualizar isLoading y cualquier widget que dependa de ello.
+      notifyListeners();
       return true;
     } catch (e) {
       _errorMessage = "Error al actualizar datos del usuario: ${e.toString()}";
