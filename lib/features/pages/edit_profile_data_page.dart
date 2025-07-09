@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:padel_app/features/design/app_colors.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:padel_app/data/models/user_model.dart';
+import 'package:padel_app/data/viewmodels/auth_viewmodel.dart';
 import 'package:provider/provider.dart';
-
-import '../../data/models/user_model.dart';
-import '../../data/viewmodels/auth_viewmodel.dart';
 
 class EditProfileDataPage extends StatefulWidget {
   final String userId; // Cambiado de Usuario a String
