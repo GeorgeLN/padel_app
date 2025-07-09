@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:padel_app/features/design/app_colors.dart';
-import 'package:padel_app/models/user_model.dart';
-import 'package:padel_app/viewmodels/auth_viewmodel.dart';
 import 'package:provider/provider.dart';
 import 'dart:async';
+
+import '../../data/models/user_model.dart';
+import '../../data/viewmodels/auth_viewmodel.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
