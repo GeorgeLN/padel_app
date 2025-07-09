@@ -5,8 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:padel_app/features/design/app_colors.dart';
 import 'package:google_fonts/google_fonts.dart';
 // import 'package:padel_app/features/widgets/add_data_form.dart'; // Comentado ya que su funcionalidad cambia
-import 'package:padel_app/models/user_model.dart'; // Importar el modelo Usuario
-import 'package:padel_app/viewmodels/auth_viewmodel.dart'; // Para el botón de cerrar sesión
+import 'package:padel_app/data/models/user_model.dart'; // Importar el modelo Usuario
+import 'package:padel_app/data/viewmodels/auth_viewmodel.dart'; // Para el botón de cerrar sesión
+import 'package:padel_app/features/pages/_pages.dart';
 import 'package:provider/provider.dart'; // Para acceder al AuthViewModel
 
 class TablePage extends StatefulWidget {
@@ -65,7 +66,7 @@ class _TablePageState extends State<TablePage> {
             icon: const Icon(Icons.logout, color: AppColors.textWhite),
             onPressed: () async {
               await authViewModel.cerrarSesion();
-              // AuthWrapper se encargará de redirigir a LoginScreen
+              Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => AuthWrapper()));
             },
           )
         ],
@@ -108,7 +109,7 @@ class _TablePageState extends State<TablePage> {
                     // Columnas de la tabla: 'TEAM', 'PTS POS', '%', 'ASIST', 'PTS', 'SUB CTG', 'BON', 'PEN'
                     'TEAM': user.nombre, // 'nombre' del modelo Usuario
                     'PTS POS': user.puntos_pos,
-                    '%': user.efectividad.toStringAsFixed(1) + '%', // Formatear efectividad
+                    '%': '${user.efectividad.toStringAsFixed(1)}%', // Formatear efectividad
                     'ASIST': user.asistencias,
                     'PTS': user.puntos,
                     'SUB CTG': user.subcategoria,

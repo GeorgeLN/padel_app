@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:padel_app/models/user_model.dart'; // Asegúrate que la ruta sea correcta
+import 'package:padel_app/data/models/user_model.dart'; // Asegúrate que la ruta sea correcta
 
 class AuthViewModel extends ChangeNotifier {
   final FirebaseAuth _auth = FirebaseAuth.instance;
