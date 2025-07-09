@@ -40,16 +40,15 @@ class _EditProfileDataPageState extends State<EditProfileDataPage> {
         _isLoading = true;
       });
 
+      // Crear un nuevo objeto Usuario con los datos actualizados
       Usuario usuarioActualizado = widget.usuario.copyWith(
         nombre: _nombreController.text.trim(),
         descripcionPerfil: _descripcionController.text.trim(),
+        // Otros campos permanecen igual
       );
 
       final authViewModel = Provider.of<AuthViewModel>(context, listen: false);
-      // authViewModel.clearErrorMessage(); // No estaba en la versión original del primer submit
       bool success = await authViewModel.actualizarDatosUsuario(usuarioActualizado);
-
-      if (!mounted) return;
 
       setState(() {
         _isLoading = false;
@@ -57,18 +56,12 @@ class _EditProfileDataPageState extends State<EditProfileDataPage> {
 
       if (success) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar( // SnackBar original
-            content: Text('Perfil actualizado con éxito.'),
-            backgroundColor: AppColors.primaryGreen
-          ),
+          const SnackBar(content: Text('Perfil actualizado con éxito.'), backgroundColor: AppColors.primaryGreen),
         );
-        Navigator.of(context).pop();
+        Navigator.of(context).pop(); // Volver a la página anterior
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar( // SnackBar original
-            content: Text(authViewModel.errorMessage ?? 'Error al actualizar el perfil.'),
-            backgroundColor: Colors.red
-          ),
+          SnackBar(content: Text(authViewModel.errorMessage ?? 'Error al actualizar el perfil.'), backgroundColor: Colors.red),
         );
       }
     }
@@ -81,10 +74,9 @@ class _EditProfileDataPageState extends State<EditProfileDataPage> {
     return Scaffold(
       backgroundColor: AppColors.primaryBlack,
       appBar: AppBar(
-        title: Text('Editar Perfil', style: GoogleFonts.lato(color: AppColors.textWhite, fontWeight: FontWeight.bold)),
+        title: Text('Editar Perfil', style: GoogleFonts.lato(color: AppColors.textWhite)),
         backgroundColor: AppColors.secondBlack,
-        iconTheme: const IconThemeData(color: AppColors.textWhite),
-        elevation: 0, // elevation 0 era común en los appbars que hicimos
+        iconTheme: const IconThemeData(color: AppColors.textWhite), // Para el botón de atrás
       ),
       body: SingleChildScrollView(
         padding: EdgeInsets.all(size.width * 0.05),
@@ -93,22 +85,20 @@ class _EditProfileDataPageState extends State<EditProfileDataPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
-              // TextFormField para Nombre
               TextFormField(
                 controller: _nombreController,
-                style: GoogleFonts.lato(color: AppColors.textWhite, fontSize: size.width * 0.04),
+                style: GoogleFonts.lato(color: AppColors.textWhite),
                 decoration: InputDecoration(
                   labelText: 'Nombre Completo',
-                  labelStyle: GoogleFonts.lato(color: AppColors.textLightGray, fontSize: size.width * 0.04),
+                  labelStyle: GoogleFonts.lato(color: AppColors.textLightGray),
                   enabledBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: AppColors.textLightGray.withOpacity(0.5)), // Opacidad como en la versión original
+                    borderSide: const BorderSide(color: AppColors.textLightGray),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   focusedBorder: OutlineInputBorder(
-                    borderSide: const BorderSide(color: AppColors.primaryGreen, width: 1.5),
+                    borderSide: const BorderSide(color: AppColors.primaryGreen),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  contentPadding: EdgeInsets.symmetric(horizontal: size.width * 0.04, vertical: size.height * 0.02),
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -117,27 +107,24 @@ class _EditProfileDataPageState extends State<EditProfileDataPage> {
                   return null;
                 },
               ),
-              SizedBox(height: size.height * 0.025), // Espacio original
-
-              // TextFormField para Descripción
+              SizedBox(height: size.height * 0.02),
               TextFormField(
                 controller: _descripcionController,
-                style: GoogleFonts.lato(color: AppColors.textWhite, fontSize: size.width * 0.04),
+                style: GoogleFonts.lato(color: AppColors.textWhite),
                 decoration: InputDecoration(
                   labelText: 'Descripción del Perfil',
-                  labelStyle: GoogleFonts.lato(color: AppColors.textLightGray, fontSize: size.width * 0.04),
-                   enabledBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: AppColors.textLightGray.withOpacity(0.5)),
+                  labelStyle: GoogleFonts.lato(color: AppColors.textLightGray),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: const BorderSide(color: AppColors.textLightGray),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   focusedBorder: OutlineInputBorder(
-                    borderSide: const BorderSide(color: AppColors.primaryGreen, width: 1.5),
+                    borderSide: const BorderSide(color: AppColors.primaryGreen),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  contentPadding: EdgeInsets.symmetric(horizontal: size.width * 0.04, vertical: size.height * 0.02),
-                  alignLabelWithHint: true,
+                  alignLabelWithHint: true, // Para que el label se alinee bien con varias líneas
                 ),
-                maxLines: 5,
+                maxLines: 5, // Permitir múltiples líneas para la descripción
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Por favor, ingresa una descripción para tu perfil.';
@@ -151,18 +138,17 @@ class _EditProfileDataPageState extends State<EditProfileDataPage> {
                   : ElevatedButton(
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primaryGreen,
-                        padding: EdgeInsets.symmetric(vertical: size.height * 0.018), // Padding original
+                        padding: EdgeInsets.symmetric(vertical: size.height * 0.015),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10), // Radio original
+                          borderRadius: BorderRadius.circular(10),
                         ),
-                        // elevation: 3, // No había elevation en el botón original
                       ),
                       onPressed: _guardarCambios,
                       child: Text(
                         'Guardar Cambios',
                         style: GoogleFonts.lato(
                           color: AppColors.textBlack,
-                          fontSize: size.width * 0.042, // Tamaño original
+                          fontSize: size.width * 0.045,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
