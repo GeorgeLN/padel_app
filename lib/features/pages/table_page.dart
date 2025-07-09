@@ -8,7 +8,9 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:padel_app/data/models/user_model.dart'; // Importar el modelo Usuario
 import 'package:padel_app/data/viewmodels/auth_viewmodel.dart'; // Para el botón de cerrar sesión
 import 'package:padel_app/features/pages/_pages.dart';
-import 'package:provider/provider.dart'; // Para acceder al AuthViewModel
+import 'package:provider/provider.dart';
+
+import 'edit_profile_data_page.dart'; // Para acceder al AuthViewModel
 
 class TablePage extends StatefulWidget {
   const TablePage({super.key});
@@ -18,39 +20,6 @@ class TablePage extends StatefulWidget {
 }
 
 class _TablePageState extends State<TablePage> {
-  // void _showAddDataForm(BuildContext context) { // Comentado o redefinir su propósito
-  //   showModalBottomSheet(
-  //     context: context,
-  //     isScrollControlled: true,
-  //     backgroundColor: AppColors.primaryBlack,
-  //     shape: const RoundedRectangleBorder(
-  //       borderRadius: BorderRadius.vertical(
-  //         top: Radius.circular(18),
-  //       ),
-  //     ),
-  //     builder: (_) {
-  //       return Padding(
-  //         padding: EdgeInsets.only(
-  //           bottom: MediaQuery.of(context).viewInsets.bottom,
-  //           top: 20,
-  //           left: 20,
-  //           right: 20,
-  //         ),
-  //         // child: AddDataForm( // AddDataForm necesitaría ser adaptado o eliminado si ya no se usa
-  //         //   onSave: (data) {
-  //         //     // _addTableData(data); // Ya no se usa de esta forma
-  //         //     Navigator.of(context).pop();
-  //         //   },
-  //         // ),
-  //       );
-  //     },
-  //   );
-  // }
-
-  // _dynamicTableData ya no se usa, los datos vendrán de Firestore
-  // List<Map<String, dynamic>> _dynamicTableData = [ ... ];
-  // void _addTableData(Map<String, dynamic> newData) { ... }
-
   Stream<List<QuerySnapshot>> _getUsersStream(String? currentUserId) {
     final firestore = FirebaseFirestore.instance;
     Stream<QuerySnapshot> loggedInUserStream;
@@ -75,9 +44,6 @@ class _TablePageState extends State<TablePage> {
           .snapshots();
     }
 
-    // Combina los dos streams.
-    // Usamos un Stream.asyncMap para esperar ambas consultas antes de emitir.
-    // Esto es una simplificación. Para casos complejos, rxdart (StreamZip) es mejor.
     return loggedInUserStream.asyncMap((loggedInUserSnap) async {
       final otherUsersSnap = await otherUsersStream.first; // Espera el primer evento de los otros usuarios
       return [loggedInUserSnap, otherUsersSnap];
@@ -94,16 +60,9 @@ class _TablePageState extends State<TablePage> {
       backgroundColor: AppColors.primaryBlack,
       appBar: AppBar( // AppBar agregada para el título y botón de logout
         title: Text('Ranking de Jugadores', style: GoogleFonts.lato(color: AppColors.textWhite)),
+        centerTitle: true,
         backgroundColor: AppColors.secondBlack,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout, color: AppColors.textWhite),
-            onPressed: () async {
-              await authViewModel.cerrarSesion();
-              Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => AuthWrapper()));
-            },
-          )
-        ],
+        leading: Icon(Icons.abc_rounded, color: Colors.transparent),
       ),
       body: SingleChildScrollView(
         scrollDirection: Axis.vertical,
@@ -119,7 +78,7 @@ class _TablePageState extends State<TablePage> {
 
             // StreamBuilder para cargar datos de Firestore
             StreamBuilder<List<QuerySnapshot>>( // Cambiado a List<QuerySnapshot>
-              stream: _getUsersStream(authViewModel.usuarioActual?.uid), // Usar la nueva función de stream
+              stream: _getUsersStream(authViewModel.currentUser?.uid), // Usar la nueva función de stream
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator(color: AppColors.primaryGreen));
@@ -155,7 +114,7 @@ class _TablePageState extends State<TablePage> {
                     data['uid'] = doc.id;
                   }
                   // Evitar duplicados si el usuario logueado también aparece aquí (aunque no debería por la consulta)
-                  if (authViewModel.usuarioActual?.uid == null || doc.id != authViewModel.usuarioActual!.uid) {
+                  if (authViewModel.currentUser?.uid == null || doc.id != authViewModel.currentUser!.uid) {
                     usuarios.add(Usuario.fromJson(data));
                   }
                 }
@@ -177,7 +136,7 @@ class _TablePageState extends State<TablePage> {
                     'PEN': user.penalizaciones,
                     // Campos necesarios para la lógica de edición
                     'id': user.uid, // Usar user.uid que debe estar asignado
-                    'isCurrentUser': authViewModel.usuarioActual?.uid == user.uid,
+                    'isCurrentUser': authViewModel.currentUser?.uid == user.uid,
                   };
                 }).toList();
 
@@ -408,7 +367,7 @@ class TablaDatosJugador extends StatelessWidget {
             columns: <DataColumn>[
               DataColumn(label: Text('TEAM', style: headerTextStyle)),
               DataColumn(label: Text('PTS POS', style: headerTextStyle)),
-              DataColumn(label: Text('%', style: headerTextStyle)),
+              DataColumn(label: Text('EFEC', style: headerTextStyle)),
               DataColumn(label: Text('ASIST', style: headerTextStyle)),
               DataColumn(label: Text('PTS', style: headerTextStyle)),
               DataColumn(label: Text('SUB CTG', style: headerTextStyle)),

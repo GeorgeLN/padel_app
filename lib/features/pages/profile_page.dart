@@ -2,10 +2,13 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:padel_app/features/design/app_colors.dart';
-import 'package:padel_app/models/user_model.dart';
-import 'package:padel_app/viewmodels/auth_viewmodel.dart';
 import 'package:provider/provider.dart';
 import 'dart:async';
+
+import '../../data/models/user_model.dart';
+import '../../data/viewmodels/auth_viewmodel.dart';
+import 'authWrapper.dart';
+import 'edit_profile_data_page.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -35,6 +38,7 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
+    final authViewModel = Provider.of<AuthViewModel>(context, listen: false);
 
     if (_userDataFuture == null) {
       return Scaffold(
@@ -43,7 +47,7 @@ class _ProfilePageState extends State<ProfilePage> {
           backgroundColor: AppColors.primaryBlue,
           title: Text('Perfil', style: GoogleFonts.lato(color: AppColors.textWhite, fontSize: size.width * 0.06, fontWeight: FontWeight.bold)),
           centerTitle: true,
-          iconTheme: const IconThemeData(color: AppColors.textWhite),
+          leading: Icon(Icons.abc_rounded, color: Colors.transparent),
         ),
         body: Center(child: CircularProgressIndicator(color: AppColors.primaryGreen)),
       );
@@ -55,7 +59,16 @@ class _ProfilePageState extends State<ProfilePage> {
         backgroundColor: AppColors.primaryBlue,
         title: Text('Perfil', style: GoogleFonts.lato(color: AppColors.textWhite, fontSize: size.width * 0.06, fontWeight: FontWeight.bold)),
         centerTitle: true,
-        iconTheme: const IconThemeData(color: AppColors.textWhite),
+        leading: Icon(Icons.abc_rounded, color: Colors.transparent),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout, color: AppColors.textWhite),
+            onPressed: () async {
+              await authViewModel.cerrarSesion();
+              Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => AuthWrapper()));
+            },
+          )
+        ],
       ),
       body: FutureBuilder<Usuario?>(
         future: _userDataFuture,
@@ -81,11 +94,12 @@ class _ProfilePageState extends State<ProfilePage> {
                   children: [
                     Container(
                       width: size.width * 0.9,
-                      height: size.height * 0.44,
+                      height: size.height * 0.455,
                       child: Stack(
                         children: [
                           Positioned(
-                            top: 0,
+                            top: size.height * 0.0125,
+
                             child: Container(
                               width: size.width * 0.9,
                               height: size.height * 0.35,
@@ -99,7 +113,6 @@ class _ProfilePageState extends State<ProfilePage> {
                             ),
                           ),
                           Positioned(
-                            top: size.height * 0.01,
                             left: size.width * 0.065,
                             child: Container(
                               width: size.width * 0.7,
@@ -115,7 +128,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                       color: AppColors.primaryGreen,
                                     ),
                                     child: Icon(
-                                      Icons.show_chart_rounded,
+                                      Icons.local_fire_department,
                                       color: AppColors.textBlack,
                                       size: size.width * 0.08,
                                     ),
@@ -133,7 +146,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                           ),
                                         ),
                                         TextSpan(
-                                          text: '${(usuario.efectividad * 100).toStringAsFixed(0)}%',
+                                          text: '${(usuario.efectividad).toStringAsFixed(0)}%',
                                           style: GoogleFonts.lato(
                                             color: AppColors.primaryGreen,
                                             fontSize: size.width * 0.04,
@@ -288,10 +301,11 @@ class BlurContainer extends StatelessWidget {
           width: size.width * 0.8,
           height: size.height * 0.14,
           padding: EdgeInsets.symmetric(vertical: size.height * 0.01, horizontal: size.width * 0.02),
+          margin: EdgeInsets.only(bottom: size.height * 0.02),
           decoration: BoxDecoration(
-            color: AppColors.primaryBlue.withOpacity(0.5),
+            color: AppColors.primaryBlue.withValues(alpha: 0.5),
             borderRadius: BorderRadius.circular(15),
-            border: Border.all(color: AppColors.primaryGreen.withOpacity(0.5), width: 1),
+            border: Border.all(color: AppColors.primaryGreen.withValues(alpha: 0.5), width: 1),
           ),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -300,17 +314,56 @@ class BlurContainer extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  _buildStatItem(context, Icons.stars_rounded, 'Ranking', '${usuario.ranking}', size),
-                  _buildDivider(size),
-                  _buildStatItem(context, Icons.event_available_rounded, 'Asistencias', '${usuario.asistencias}', size),
+                  _buildStatItem(context, Icons.local_fire_department, 'Ranking', '${usuario.ranking}', size),
+                  _buildStatItem(context, Icons.timer_outlined, 'Asistencia', '${usuario.asistencias}', size),
                 ],
               ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  _buildBottomStatItem(context, Icons.control_point_duplicate_rounded, '${usuario.puntos}', 'Puntos', size),
-                  _buildBottomStatItem(context, Icons.add_reaction_rounded, '${usuario.bonificaciones}', 'Bonos', size),
+                  _buildStatItem(context, Icons.timer_outlined, 'Intermedio', 'Nivel', size),
+
+                  Row(
+                    children: [
+                      Container(
+                        padding: EdgeInsets.all(size.width * 0.015),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(8),
+                          color: AppColors.primaryGreen,
+                        ),
+                        child: Icon(
+                          Icons.group_rounded,
+                          color: AppColors.textBlack,
+                          size: size.width * 0.055,
+                        ),
+                      ),
+                      SizedBox(width: size.width * 0.02),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            '2-3 veces\npor semana',
+                            style: GoogleFonts.lato(
+                              color: AppColors.textWhite,
+                              fontSize: size.width * 0.032,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          /*Text(
+                            'Hola',
+                            style: GoogleFonts.lato(
+                              color: AppColors.primaryGreen,
+                              fontSize: size.width * 0.032,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),*/
+                        ],
+                      )
+                    ],
+                  ),
+                  //_buildBottomStatItem(context, Icons.add_reaction_rounded, '${usuario.bonificaciones}', 'Bonos', size),
                 ],
               )
             ],
@@ -321,47 +374,45 @@ class BlurContainer extends StatelessWidget {
   }
 
   Widget _buildStatItem(BuildContext context, IconData icon, String label, String value, Size size) {
-    return Expanded(
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            padding: EdgeInsets.all(size.width * 0.015),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(8),
-              color: AppColors.primaryGreen,
-            ),
-            child: Icon(
-              icon,
-              color: AppColors.textBlack,
-              size: size.width * 0.055,
-            ),
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Container(
+          padding: EdgeInsets.all(size.width * 0.015),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(8),
+            color: AppColors.primaryGreen,
           ),
-          SizedBox(width: size.width * 0.02),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                label,
-                style: GoogleFonts.lato(
-                  color: AppColors.textWhite,
-                  fontSize: size.width * 0.032,
-                  fontWeight: FontWeight.w500,
-                ),
+          child: Icon(
+            icon,
+            color: AppColors.textBlack,
+            size: size.width * 0.055,
+          ),
+        ),
+        SizedBox(width: size.width * 0.02),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              label,
+              style: GoogleFonts.lato(
+                color: AppColors.textWhite,
+                fontSize: size.width * 0.032,
+                fontWeight: FontWeight.bold,
               ),
-              Text(
-                value,
-                style: GoogleFonts.lato(
-                  color: AppColors.primaryGreen,
-                  fontSize: size.width * 0.032,
-                  fontWeight: FontWeight.bold,
-                ),
+            ),
+            Text(
+              value,
+              style: GoogleFonts.lato(
+                color: AppColors.primaryGreen,
+                fontSize: size.width * 0.032,
+                fontWeight: FontWeight.bold,
               ),
-            ],
-          )
-        ],
-      ),
+            ),
+          ],
+        )
+      ],
     );
   }
 
@@ -371,7 +422,7 @@ class BlurContainer extends StatelessWidget {
       height: size.height * 0.035,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(10),
-        color: AppColors.primaryGreen.withOpacity(0.7),
+        color: AppColors.primaryGreen.withValues(alpha: 0.7),
       ),
     );
   }
@@ -382,7 +433,7 @@ class BlurContainer extends StatelessWidget {
         padding: EdgeInsets.symmetric(vertical: size.width * 0.01, horizontal: size.width * 0.015),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(8),
-          color: AppColors.primaryBlue.withOpacity(0.7),
+          color: AppColors.primaryBlue.withValues(alpha: 0.7),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
