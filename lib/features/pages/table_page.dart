@@ -4,7 +4,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:padel_app/features/design/app_colors.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:padel_app/data/models/user_model.dart'; // Importar el modelo Usuario
+
+import '../../data/models/user_model.dart';
 
 class TablePage extends StatefulWidget {
   const TablePage({super.key});
@@ -81,8 +82,6 @@ class _TablePageState extends State<TablePage> {
                     'BON': user.bonificaciones,
                     'PEN': user.penalizaciones,
                     // Campos necesarios para la lógica de edición
-                    'id': user.id,
-                    'isCurrentUser': authViewModel.usuarioActual?.uid == user.id,
                   };
                 }).toList();
 
