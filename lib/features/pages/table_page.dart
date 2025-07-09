@@ -4,11 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:padel_app/features/design/app_colors.dart';
 import 'package:google_fonts/google_fonts.dart';
-// import 'package:padel_app/features/widgets/add_data_form.dart'; // Comentado ya que su funcionalidad cambia
 import 'package:padel_app/data/models/user_model.dart'; // Importar el modelo Usuario
-import 'package:padel_app/data/viewmodels/auth_viewmodel.dart'; // Para el botón de cerrar sesión
-import 'package:padel_app/features/pages/_pages.dart';
-import 'package:provider/provider.dart'; // Para acceder al AuthViewModel
 
 class TablePage extends StatefulWidget {
   const TablePage({super.key});
@@ -18,58 +14,17 @@ class TablePage extends StatefulWidget {
 }
 
 class _TablePageState extends State<TablePage> {
-  // void _showAddDataForm(BuildContext context) { // Comentado o redefinir su propósito
-  //   showModalBottomSheet(
-  //     context: context,
-  //     isScrollControlled: true,
-  //     backgroundColor: AppColors.primaryBlack,
-  //     shape: const RoundedRectangleBorder(
-  //       borderRadius: BorderRadius.vertical(
-  //         top: Radius.circular(18),
-  //       ),
-  //     ),
-  //     builder: (_) {
-  //       return Padding(
-  //         padding: EdgeInsets.only(
-  //           bottom: MediaQuery.of(context).viewInsets.bottom,
-  //           top: 20,
-  //           left: 20,
-  //           right: 20,
-  //         ),
-  //         // child: AddDataForm( // AddDataForm necesitaría ser adaptado o eliminado si ya no se usa
-  //         //   onSave: (data) {
-  //         //     // _addTableData(data); // Ya no se usa de esta forma
-  //         //     Navigator.of(context).pop();
-  //         //   },
-  //         // ),
-  //       );
-  //     },
-  //   );
-  // }
-
-  // _dynamicTableData ya no se usa, los datos vendrán de Firestore
-  // List<Map<String, dynamic>> _dynamicTableData = [ ... ];
-  // void _addTableData(Map<String, dynamic> newData) { ... }
-
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
-    final authViewModel = Provider.of<AuthViewModel>(context, listen: false);
 
     return Scaffold(
       backgroundColor: AppColors.primaryBlack,
       appBar: AppBar( // AppBar agregada para el título y botón de logout
         title: Text('Ranking de Jugadores', style: GoogleFonts.lato(color: AppColors.textWhite)),
+        centerTitle: true,
         backgroundColor: AppColors.secondBlack,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout, color: AppColors.textWhite),
-            onPressed: () async {
-              await authViewModel.cerrarSesion();
-              Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => AuthWrapper()));
-            },
-          )
-        ],
+        leading: Icon(Icons.arrow_back, color: Colors.transparent),
       ),
       body: SingleChildScrollView(
         scrollDirection: Axis.vertical,

@@ -1,11 +1,14 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:padel_app/data/models/user_model.dart';
 import 'package:padel_app/features/design/app_colors.dart';
-import 'package:padel_app/models/user_model.dart';
-import 'package:padel_app/viewmodels/auth_viewmodel.dart';
 import 'package:provider/provider.dart';
 import 'dart:async';
+
+import '../../data/viewmodels/auth_viewmodel.dart';
+import 'authWrapper.dart';
+import 'edit_profile_data_page.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -35,16 +38,11 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
+    final authViewModel = Provider.of<AuthViewModel>(context, listen: false);
 
     if (_userDataFuture == null) {
       return Scaffold(
         backgroundColor: AppColors.primaryBlue,
-        appBar: AppBar(
-          backgroundColor: AppColors.primaryBlue,
-          title: Text('Perfil', style: GoogleFonts.lato(color: AppColors.textWhite, fontSize: size.width * 0.06, fontWeight: FontWeight.bold)),
-          centerTitle: true,
-          iconTheme: const IconThemeData(color: AppColors.textWhite),
-        ),
         body: Center(child: CircularProgressIndicator(color: AppColors.primaryGreen)),
       );
     }
@@ -55,7 +53,16 @@ class _ProfilePageState extends State<ProfilePage> {
         backgroundColor: AppColors.primaryBlue,
         title: Text('Perfil', style: GoogleFonts.lato(color: AppColors.textWhite, fontSize: size.width * 0.06, fontWeight: FontWeight.bold)),
         centerTitle: true,
-        iconTheme: const IconThemeData(color: AppColors.textWhite),
+        leading: Icon(Icons.arrow_back, color: Colors.transparent),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout, color: AppColors.textWhite),
+            onPressed: () async {
+              await authViewModel.cerrarSesion();
+              Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => AuthWrapper()));
+            },
+          )
+        ],
       ),
       body: FutureBuilder<Usuario?>(
         future: _userDataFuture,
