@@ -3,6 +3,11 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:padel_app/features/design/app_colors.dart';
 import 'package:provider/provider.dart';
 import 'dart:async';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:padel_app/data/models/quedada_model.dart';
+import 'package:padel_app/features/pages/room_page.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:padel_app/features/widgets/tournament_card.dart';
 
 import '../../data/models/user_model.dart';
 import '../../data/viewmodels/auth_viewmodel.dart';
@@ -20,6 +25,7 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
+    _crearQuedadasDeEjemplo();
     Future.microtask(() {
       if (mounted) {
         final authViewModel = Provider.of<AuthViewModel>(context, listen: false);
@@ -30,6 +36,29 @@ class _HomePageState extends State<HomePage> {
         }
       }
     });
+  }
+
+  void _crearQuedadasDeEjemplo() async {
+    final quedadasRef = FirebaseFirestore.instance.collection('quedadas');
+    final snapshot = await quedadasRef.limit(1).get();
+    if (snapshot.docs.isEmpty) {
+      await quedadasRef.add({
+        'lugar': 'Padel Club Indoor',
+        'fecha': Timestamp.now(),
+        'hora': '18:00',
+        'jugadores': [],
+        'equipo1': [],
+        'equipo2': [],
+      });
+      await quedadasRef.add({
+        'lugar': 'Club de Tenis y Padel',
+        'fecha': Timestamp.fromDate(DateTime.now().add(const Duration(days: 1))),
+        'hora': '20:00',
+        'jugadores': [],
+        'equipo1': [],
+        'equipo2': [],
+      });
+    }
   }
 
   @override
@@ -103,7 +132,7 @@ class MajorTournaments extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Torneos Principales',
+            'Partidas Disponibles',
             style: GoogleFonts.lato(
               fontSize: size.width * 0.05,
               color: AppColors.textBlack,
@@ -111,137 +140,33 @@ class MajorTournaments extends StatelessWidget {
             ),
           ),
           SizedBox(height: size.height * 0.015),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            physics: const BouncingScrollPhysics(), // Efecto de rebote
-            child: Row(
-              children: List.generate(3, (index) => Padding( // Generar 3 tarjetas de ejemplo
-                padding: EdgeInsets.only(right: size.width * 0.04), // Espacio entre tarjetas
-                child: TournamentCard(size: size, index: index),
-              )),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
+          SizedBox(
+            height: size.height * 0.25,
+            child: StreamBuilder<QuerySnapshot>(
+              stream: FirebaseFirestore.instance.collection('quedadas').snapshots(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                  return const Center(child: Text('No hay quedadas disponibles.'));
+                }
 
-class TournamentCard extends StatelessWidget {
-  const TournamentCard({
-    super.key,
-    required this.size,
-    required this.index, // Para diferenciar las tarjetas de ejemplo
-  });
+                final quedadas = snapshot.data!.docs.map((doc) => Quedada.fromFirestore(doc)).toList();
 
-  final Size size;
-  final int index;
-
-  @override
-  Widget build(BuildContext context) {
-    // Datos de ejemplo para las tarjetas
-    final tournamentNames = ['Torneo de Verano', 'Copa Invierno', 'Liga Master'];
-    final tournamentImages = [
-      'assets/images/tournament_image1.png', // Asegúrate que estas imágenes existan
-      'assets/images/padel_player.png',     // o usa placeholders
-      'assets/images/profile_image.png',
-    ];
-
-    return Container(
-      width: size.width * 0.8,
-      height: size.height * 0.22, // Ligeramente más alto
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(18),
-        image: DecorationImage(
-          image: AssetImage(tournamentImages[index % tournamentImages.length]),
-          fit: BoxFit.cover,
-          colorFilter: ColorFilter.mode( // Filtro para oscurecer un poco la imagen
-            Colors.black.withOpacity(0.3),
-            BlendMode.darken,
-          ),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.15),
-            spreadRadius: 1,
-            blurRadius: 8,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Padding(
-        padding: EdgeInsets.all(size.width * 0.04),
-        child: Column( // Cambiado a Column para mejor distribución vertical
-          mainAxisAlignment: MainAxisAlignment.spaceBetween, // Espacio entre elementos principales
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              tournamentNames[index % tournamentNames.length],
-              style: GoogleFonts.lato(
-                fontSize: size.width * 0.055,
-                color: AppColors.textWhite,
-                fontWeight: FontWeight.w900,
-                shadows: [
-                  Shadow(blurRadius: 3.0, color: Colors.black.withOpacity(0.6), offset: const Offset(1.5, 1.5)),
-                ],
-              ),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildTournamentInfoChip(size, Icons.calendar_today_outlined, '15-20 Julio'), // Info de ejemplo
-                    SizedBox(height: size.height * 0.008),
-                    _buildTournamentInfoChip(size, Icons.groups_rounded, 'Equipos de 2'), // Info de ejemplo
-                  ],
-                ),
-                GestureDetector(
-                  onTap: () { /* Acción al presionar */ },
-                  child: Container(
-                    width: size.width * 0.13,
-                    height: size.width * 0.13,
-                    decoration: const BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: AppColors.primaryGreen,
-                    ),
-                    child: Icon(
-                      Icons.arrow_forward_ios_rounded, // Icono cambiado
-                      color: AppColors.textBlack,
-                      size: size.width * 0.06,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTournamentInfoChip(Size size, IconData icon, String text) {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: size.width * 0.02, vertical: size.height * 0.006),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(8),
-        color: AppColors.textWhite.withOpacity(0.85),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, color: AppColors.textBlack, size: size.width * 0.035),
-          SizedBox(width: size.width * 0.015),
-          Text(
-            text,
-            style: GoogleFonts.lato(
-              fontSize: size.width * 0.028,
-              color: AppColors.textBlack,
-              fontWeight: FontWeight.bold,
+                final authViewModel = Provider.of<AuthViewModel>(context, listen: false);
+                return ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  physics: const BouncingScrollPhysics(),
+                  itemCount: quedadas.length,
+                  itemBuilder: (context, index) {
+                    return Padding(
+                      padding: EdgeInsets.only(right: size.width * 0.04),
+                      child: TournamentCard(size: size, quedada: quedadas[index], authViewModel: authViewModel),
+                    );
+                  },
+                );
+              },
             ),
           ),
         ],
