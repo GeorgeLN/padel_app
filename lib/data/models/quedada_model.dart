@@ -8,6 +8,7 @@ class Quedada {
   final List<String> jugadores;
   final List<String> equipo1;
   final List<String> equipo2;
+  final String estadoQuedada;
 
   Quedada({
     required this.id,
@@ -17,6 +18,7 @@ class Quedada {
     required this.jugadores,
     required this.equipo1,
     required this.equipo2,
+    this.estadoQuedada = 'disponible',
   });
 
   factory Quedada.fromFirestore(DocumentSnapshot doc) {
@@ -29,6 +31,7 @@ class Quedada {
       jugadores: List<String>.from(data['jugadores'] ?? []),
       equipo1: List<String>.from(data['equipo1'] ?? []),
       equipo2: List<String>.from(data['equipo2'] ?? []),
+      estadoQuedada: data['estadoQuedada'] ?? 'disponible',
     );
   }
 
@@ -40,6 +43,7 @@ class Quedada {
       'jugadores': jugadores,
       'equipo1': equipo1,
       'equipo2': equipo2,
+      'estadoQuedada': estadoQuedada,
     };
   }
 }
