@@ -113,9 +113,9 @@ class _TablePageState extends State<TablePage> {
                     data['uid'] = doc.id;
                   }
                   // Evitar duplicados si el usuario logueado también aparece aquí (aunque no debería por la consulta)
-                  // if (authViewModel.currentUser?.uid == null || doc.id != authViewModel.currentUser!.uid) {
-                  //   usuarios.add(Usuario.fromJson(data));
-                  // }
+                  if (authViewModel.currentUser?.uid == null || doc.id != authViewModel.currentUser!.uid) {
+                    usuarios.add(Usuario.fromJson(data));
+                  }
                 }
 
                 if (usuarios.isEmpty) {

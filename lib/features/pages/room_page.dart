@@ -107,9 +107,13 @@ class _RoomPageState extends State<RoomPage> {
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _buildEquipo(context, 'Equipo 1', quedada.equipo1),
-              const Text('VS', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+              Padding(
+                padding: const EdgeInsets.only(top: 50.0),
+                child: Text('VS', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.primaryGreen)),
+              ),
               _buildEquipo(context, 'Equipo 2', quedada.equipo2),
             ],
           ),
