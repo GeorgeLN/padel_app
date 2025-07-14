@@ -96,15 +96,17 @@ class _HomePageState extends State<HomePage> {
 
   Widget _buildHomePageContent(Size size, BuildContext context, Usuario? usuario) {
     String? primerNombre;
+    String? estado;
     if (usuario != null && usuario.nombre.isNotEmpty) {
       primerNombre = usuario.nombre.split(' ').first;
+      estado = usuario.estado;
     }
 
-    return SafeArea( // Envolver con SafeArea
+    return SafeArea(
       child: SingleChildScrollView(
         child: Column(
           children: [
-            PlayerAppBar(size: size, playerName: primerNombre),
+            PlayerAppBar(size: size, playerName: primerNombre, playerStatus: estado),
             SearchWhiteText(size: size),
             MajorTournaments(size: size),
           ],
@@ -219,55 +221,72 @@ class PlayerAppBar extends StatelessWidget {
     super.key,
     required this.size,
     this.playerName,
+    this.playerStatus,
   });
 
   final Size size;
   final String? playerName;
+  final String? playerStatus;
 
   @override
   Widget build(BuildContext context) {
     String displayName = playerName ?? 'Jugador';
+    Color statusColor = _getStatusColor(playerStatus);
 
     return Container(
       width: size.width,
       padding: EdgeInsets.only(
-        top: size.height * 0.015, // Reducido, SafeArea se encarga del padding superior del sistema
+        top: size.height * 0.015,
         bottom: size.height * 0.015,
         left: size.width * 0.05,
         right: size.width * 0.05,
       ),
-      // No añadir BoxDecoration aquí si quieres que sea transparente y se vea el fondo del Scaffold
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Expanded( // Para que la columna del nombre pueda expandirse y elipsis funcione
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+          Expanded(
+            child: Row(
               children: [
-                Text(
-                  'Hola,',
-                  style: GoogleFonts.lato(
-                    fontSize: size.width * 0.045,
-                    color: AppColors.textBlack.withOpacity(0.8), // Ligeramente más visible
-                    fontWeight: FontWeight.w500,
+                Container(
+                  width: 12,
+                  height: 12,
+                  decoration: BoxDecoration(
+                    color: statusColor,
+                    shape: BoxShape.circle,
                   ),
                 ),
-                Text(
-                  displayName,
-                  style: GoogleFonts.lato(
-                    fontSize: size.width * 0.055,
-                    color: AppColors.textBlack,
-                    fontWeight: FontWeight.bold,
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Hola,',
+                        style: GoogleFonts.lato(
+                          fontSize: size.width * 0.045,
+                          color: AppColors.textBlack.withOpacity(0.8),
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      Text(
+                        displayName,
+                        style: GoogleFonts.lato(
+                          fontSize: size.width * 0.055,
+                          color: AppColors.textBlack,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                      ),
+                    ],
                   ),
-                  overflow: TextOverflow.ellipsis,
-                  maxLines: 1,
                 ),
               ],
             ),
           ),
           IconButton(
             icon: Icon(
-              Icons.notifications_none_outlined, // Icono cambiado a la versión no activa
+              Icons.notifications_none_outlined,
               color: AppColors.textBlack,
               size: size.width * 0.07,
             ),
@@ -276,5 +295,18 @@ class PlayerAppBar extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  Color _getStatusColor(String? status) {
+    switch (status) {
+      case 'disponible':
+        return Colors.green;
+      case 'en cola':
+        return Colors.yellow;
+      case 'en partida':
+        return Colors.blue;
+      default:
+        return Colors.grey;
+    }
   }
 }
