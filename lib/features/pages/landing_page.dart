@@ -6,9 +6,7 @@ import 'package:padel_app/features/bloc/bottom_nav_cubit.dart';
 import 'package:padel_app/features/design/app_colors.dart';
 import 'package:padel_app/features/pages/_pages.dart';
 
-
 class LandingPage extends StatefulWidget {
-   
   const LandingPage({super.key});
 
   @override
@@ -104,41 +102,6 @@ class _LandingPageState extends State<LandingPage> {
     );
   }
 
-  // Floating Action Button - LandingScreen Widget
-  // FloatingActionButton _LandingScreenFab() {
-  //   return FloatingActionButton(
-  //     onPressed: () {
-  //       ScaffoldMessenger.of(context).showSnackBar(
-  //         const SnackBar(
-  //           behavior: SnackBarBehavior.floating,
-  //           backgroundColor: Color.fromARGB(255, 7, 7, 7),
-  //           content: Text("New post will generate in upcoming 2 mins 📮"),
-  //         ),
-  //       );
-  //     },
-  //     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
-  //     backgroundColor: Colors.amber,
-  //     child: const Icon(Icons.add),
-  //   );
-  // }
-
-  // App Bar - LandingScreen Widget
-  // AppBar _LandingScreenAppBar() {
-  //   return AppBar(
-  //     backgroundColor: Colors.black,
-  //     centerTitle: true,
-
-  //     title: Text(
-  //       "BottomNavigationBar with Cubit",
-
-  //       style: GoogleFonts.poppins(
-  //         color: Colors.white,
-  //         fontSize: 18,
-  //       ),
-  //     ),
-  //   );
-  // }
-
   // Body - LandingScreen Widget
   PageView _LandingScreenBody() {
     return PageView(
@@ -153,7 +116,7 @@ class _LandingPageState extends State<LandingPage> {
   Widget _bottomAppBarItem(BuildContext context, {required defaultIcon, required page, required label, required filledIcon}) {
     return GestureDetector(
       onTap: () {
-        BlocProvider.of<BottomNavCubit>(context).changeSelectedIndex(page);
+        BlocProvider.of<BottomNavCubit>(context).changeSelectedIndex(0);
 
         pageController.animateToPage(
           page,

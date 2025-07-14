@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:padel_app/features/design/app_colors.dart'; // Ajusta la ruta si es necesario
 import 'package:padel_app/data/viewmodels/auth_viewmodel.dart'; // Ajusta la ruta si es necesario
 import 'package:padel_app/features/pages/_pages.dart';
 
 import 'package:provider/provider.dart';
+
+import '../bloc/bottom_nav_cubit.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -35,20 +38,12 @@ class _LoginPageState extends State<LoginPage> {
 
       if (mounted) { // Verificar si el widget sigue montado
         if (success) {
-          // Navegar a la pantalla principal después del login
-          // Por ejemplo, si tu pantalla principal es 'table' o 'home'
-          // Navigator.of(context).pushReplacementNamed('table');
-          // O limpiar la pila y navegar a la home
-          // Navigator.of(context).pushNamedAndRemoveUntil('table', (route) => false);
            ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Inicio de sesión exitoso!')),
           );
-          // Aquí deberías navegar a tu pantalla principal.
-          // Por ahora, si 'table' es tu home y está configurada:
           if (Navigator.canPop(context)) { // Si vino de register, pop. Sino, reemplazar.
             Navigator.pop(context); // Asumiendo que table page está debajo
           } else {
-            // Esta es una suposición, necesitarás ajustar la navegación
             Navigator.pushReplacementNamed(context, 'table');
           }
 
@@ -70,9 +65,10 @@ class _LoginPageState extends State<LoginPage> {
       backgroundColor: AppColors.primaryBlack,
       appBar: AppBar(
         title: Text('Iniciar Sesión', style: GoogleFonts.lato(color: AppColors.textWhite)),
+        centerTitle: true,
         backgroundColor: AppColors.secondBlack,
         iconTheme: const IconThemeData(color: AppColors.textWhite),
-        // automaticallyImplyLeading: false, // Descomentar si no quieres botón de atrás
+        automaticallyImplyLeading: false,
       ),
       body: Center(
         child: SingleChildScrollView(

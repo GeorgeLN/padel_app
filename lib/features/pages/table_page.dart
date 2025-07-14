@@ -7,7 +7,6 @@ import 'package:google_fonts/google_fonts.dart';
 // import 'package:padel_app/features/widgets/add_data_form.dart'; // Comentado ya que su funcionalidad cambia
 import 'package:padel_app/data/models/user_model.dart'; // Importar el modelo Usuario
 import 'package:padel_app/data/viewmodels/auth_viewmodel.dart'; // Para el botón de cerrar sesión
-import 'package:padel_app/features/pages/_pages.dart';
 import 'package:provider/provider.dart';
 
 import 'edit_profile_data_page.dart'; // Para acceder al AuthViewModel
@@ -114,9 +113,9 @@ class _TablePageState extends State<TablePage> {
                     data['uid'] = doc.id;
                   }
                   // Evitar duplicados si el usuario logueado también aparece aquí (aunque no debería por la consulta)
-                  if (authViewModel.currentUser?.uid == null || doc.id != authViewModel.currentUser!.uid) {
-                    usuarios.add(Usuario.fromJson(data));
-                  }
+                  // if (authViewModel.currentUser?.uid == null || doc.id != authViewModel.currentUser!.uid) {
+                  //   usuarios.add(Usuario.fromJson(data));
+                  // }
                 }
 
                 if (usuarios.isEmpty) {
