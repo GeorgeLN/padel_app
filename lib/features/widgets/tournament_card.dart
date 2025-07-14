@@ -84,10 +84,27 @@ class TournamentCard extends StatelessWidget {
                     final quedadaRef = FirebaseFirestore.instance.collection('quedadas').doc(quedada.id);
                     final userRef = FirebaseFirestore.instance.collection('usuarios').doc(currentUser.uid);
 
+                    // Obtener los datos más recientes de la quedada antes de la transacción
+                    final latestQuedadaSnapshot = await quedadaRef.get();
+                    final latestQuedada = Quedada.fromFirestore(latestQuedadaSnapshot);
+
+                    // Comprobar si la quedada está llena o ya ha comenzado
+                    if (latestQuedada.jugadores.length >= 4 || latestQuedada.equipo1.isNotEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('No puedes unirte a esta quedada, ya está llena o en curso.'),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                      return; // Detener la ejecución
+                    }
+
                     await FirebaseFirestore.instance.runTransaction((transaction) async {
+                      // Volver a obtener los datos dentro de la transacción para asegurar consistencia
                       final freshQuedadaSnapshot = await transaction.get(quedadaRef);
                       final freshQuedada = Quedada.fromFirestore(freshQuedadaSnapshot);
 
+                      // Doble verificación dentro de la transacción por si acaso
                       if (freshQuedada.jugadores.length < 4 && !freshQuedada.jugadores.contains(currentUser.uid)) {
                         final newJugadores = List<String>.from(freshQuedada.jugadores)..add(currentUser.uid);
                         transaction.update(quedadaRef, {'jugadores': newJugadores});
@@ -96,7 +113,11 @@ class TournamentCard extends StatelessWidget {
                           newJugadores.shuffle();
                           final equipo1 = newJugadores.sublist(0, 2);
                           final equipo2 = newJugadores.sublist(2, 4);
-                          transaction.update(quedadaRef, {'equipo1': equipo1, 'equipo2': equipo2});
+                          transaction.update(quedadaRef, {
+                            'equipo1': equipo1,
+                            'equipo2': equipo2,
+                            'estadoQuedada': 'en curso', // Cambiar estado a "en curso"
+                          });
 
                           for (var jugadorId in newJugadores) {
                             transaction.update(FirebaseFirestore.instance.collection('usuarios').doc(jugadorId), {'estado': 'en partida'});
