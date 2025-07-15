@@ -1,13 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:padel_app/features/design/app_colors.dart'; // Ajusta la ruta si es necesario
 import 'package:padel_app/data/viewmodels/auth_viewmodel.dart'; // Ajusta la ruta si es necesario
 import 'package:padel_app/features/pages/_pages.dart';
 
 import 'package:provider/provider.dart';
-
-import '../bloc/bottom_nav_cubit.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});

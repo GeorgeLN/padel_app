@@ -6,4 +6,4 @@ export 'package:padel_app/features/pages/home_page.dart';
 export 'package:padel_app/features/pages/landing_page.dart';
 export 'package:padel_app/features/pages/login_page.dart';
 export 'package:padel_app/features/pages/register_page.dart';
-export 'package:padel_app/features/pages/authWrapper.dart';
+export 'package:padel_app/features/pages/auth_wrapper.dart';

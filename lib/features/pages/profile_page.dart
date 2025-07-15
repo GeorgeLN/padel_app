@@ -7,7 +7,7 @@ import 'dart:async';
 
 import '../../data/models/user_model.dart';
 import '../../data/viewmodels/auth_viewmodel.dart';
-import 'authWrapper.dart';
+import 'auth_wrapper.dart';
 import 'edit_profile_data_page.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -416,7 +416,7 @@ class BlurContainer extends StatelessWidget {
     );
   }
 
-  Widget _buildDivider(Size size) {
+  Widget buildDivider(Size size) {
     return Container(
       width: 1.5,
       height: size.height * 0.035,
@@ -427,7 +427,7 @@ class BlurContainer extends StatelessWidget {
     );
   }
 
-  Widget _buildBottomStatItem(BuildContext context, IconData icon, String value, String label, Size size) {
+  Widget buildBottomStatItem(BuildContext context, IconData icon, String value, String label, Size size) {
     return Expanded(
       child: Container(
         padding: EdgeInsets.symmetric(vertical: size.width * 0.01, horizontal: size.width * 0.015),

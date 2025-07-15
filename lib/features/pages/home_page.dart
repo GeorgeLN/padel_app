@@ -5,8 +5,6 @@ import 'package:provider/provider.dart';
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:padel_app/data/models/quedada_model.dart';
-import 'package:padel_app/features/pages/room_page.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:padel_app/features/widgets/tournament_card.dart';
 
 import '../../data/models/user_model.dart';
