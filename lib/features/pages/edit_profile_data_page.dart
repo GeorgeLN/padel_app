@@ -280,11 +280,11 @@ class _EditProfileDataPageState extends State<EditProfileDataPage> {
       keyboardType: keyboardType, // Aplicado keyboardType
       decoration: InputDecoration(
         labelText: labelText,
-        labelStyle: GoogleFonts.lato(color: AppColors.textLightGray.withOpacity(0.8), fontSize: size.width * 0.04),
+        labelStyle: GoogleFonts.lato(color: AppColors.textLightGray.withValues(alpha: 0.8), fontSize: size.width * 0.04),
         filled: true, // Añadir fondo al campo
-        fillColor: AppColors.secondBlack.withOpacity(0.5), // Color de fondo sutil
+        fillColor: AppColors.secondBlack.withValues(alpha: 0.5), // Color de fondo sutil
         enabledBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: AppColors.textLightGray.withOpacity(0.5), width: 1),
+          borderSide: BorderSide(color: AppColors.textLightGray.withValues(alpha: 0.5), width: 1),
           borderRadius: BorderRadius.circular(10),
         ),
         focusedBorder: OutlineInputBorder(

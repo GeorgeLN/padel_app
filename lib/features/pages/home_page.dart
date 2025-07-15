@@ -192,11 +192,11 @@ class SearchWhiteText extends StatelessWidget {
       child: TextFormField(
         style: GoogleFonts.lato(color: AppColors.textBlack, fontSize: size.width * 0.04),
         decoration: InputDecoration(
-          prefixIcon: Icon(Icons.search, color: AppColors.textBlack.withOpacity(0.7), size: size.width * 0.055),
+          prefixIcon: Icon(Icons.search, color: AppColors.textBlack.withValues(alpha: 0.7), size: size.width * 0.055),
           filled: true,
           fillColor: Colors.white,
           hintText: 'Buscar torneos, jugadores...',
-          hintStyle: GoogleFonts.lato(color: AppColors.textBlack.withOpacity(0.5), fontSize: size.width * 0.04),
+          hintStyle: GoogleFonts.lato(color: AppColors.textBlack.withValues(alpha: 0.5), fontSize: size.width * 0.04),
           contentPadding: EdgeInsets.symmetric(vertical: size.height * 0.018, horizontal: size.width * 0.04), // Ajustado
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
@@ -264,7 +264,7 @@ class PlayerAppBar extends StatelessWidget {
                         'Hola,',
                         style: GoogleFonts.lato(
                           fontSize: size.width * 0.045,
-                          color: AppColors.textBlack.withOpacity(0.8),
+                          color: AppColors.textBlack.withValues(alpha: 0.8),
                           fontWeight: FontWeight.w500,
                         ),
                       ),
