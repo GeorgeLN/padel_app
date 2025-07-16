@@ -4,8 +4,8 @@ import 'package:padel_app/features/design/app_colors.dart';
 import 'package:provider/provider.dart';
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:padel_app/data/models/quedada_model.dart';
-import 'package:padel_app/features/widgets/tournament_card.dart';
+import 'package:padel_app/data/models/cancha_model.dart';
+import 'package:padel_app/features/widgets/cancha_card.dart';
 
 import '../../data/models/user_model.dart';
 import '../../data/viewmodels/auth_viewmodel.dart';
@@ -23,7 +23,7 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    _crearQuedadasDeEjemplo();
+    _crearCanchasDeEjemplo();
     Future.microtask(() {
       if (mounted) {
         final authViewModel = Provider.of<AuthViewModel>(context, listen: false);
@@ -36,60 +36,21 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
-  void _crearQuedadasDeEjemplo() async {
-    final quedadasRef = FirebaseFirestore.instance.collection('quedadas');
-    final snapshot = await quedadasRef.limit(1).get();
+  void _crearCanchasDeEjemplo() async {
+    final canchasRef = FirebaseFirestore.instance.collection('canchas');
+    final snapshot = await canchasRef.limit(1).get();
     if (snapshot.docs.isEmpty) {
-      // Quedada de las 8:00 AM con 6 partidos
-      await quedadasRef.add({
-        'lugar': 'El Maracaná',
-        'fecha': Timestamp.now(),
-        'hora': '08:00',
-        'partidos': List.generate(6, (index) => {
-          'equipo1': [],
-          'equipo2': [],
-          'estado': 'disponible',
-          'resultado': {},
-        }),
+      await canchasRef.add({
+        'nombre': 'El Maracaná',
+        'direccion': 'Calle Falsa 123',
+        'cantidad': 6,
+        'disponibles': 6,
       });
-
-      // Quedada de las 10:00 AM con 6 partidos
-      await quedadasRef.add({
-        'lugar': 'El Maracaná',
-        'fecha': Timestamp.now(),
-        'hora': '10:00',
-        'partidos': List.generate(6, (index) => {
-          'equipo1': [],
-          'equipo2': [],
-          'estado': 'disponible',
-          'resultado': {},
-        }),
-      });
-
-      // Quedada de las 2:00 PM con 6 partidos
-      await quedadasRef.add({
-        'lugar': 'El Maracaná',
-        'fecha': Timestamp.now(),
-        'hora': '14:00',
-        'partidos': List.generate(6, (index) => {
-          'equipo1': [],
-          'equipo2': [],
-          'estado': 'disponible',
-          'resultado': {},
-        }),
-      });
-
-      // Quedada de las 6:00 PM con 6 partidos
-      await quedadasRef.add({
-        'lugar': 'El Maracaná',
-        'fecha': Timestamp.now(),
-        'hora': '18:00',
-        'partidos': List.generate(6, (index) => {
-          'equipo1': [],
-          'equipo2': [],
-          'estado': 'disponible',
-          'resultado': {},
-        }),
+      await canchasRef.add({
+        'nombre': 'La Bombonera',
+        'direccion': 'Avenida Siempreviva 742',
+        'cantidad': 4,
+        'disponibles': 4,
       });
     }
   }
@@ -167,7 +128,7 @@ class MajorTournaments extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Partidas Disponibles',
+            'Canchas Disponibles',
             style: GoogleFonts.lato(
               fontSize: size.width * 0.05,
               color: AppColors.textBlack,
@@ -178,26 +139,25 @@ class MajorTournaments extends StatelessWidget {
           SizedBox(
             height: size.height * 0.25,
             child: StreamBuilder<QuerySnapshot>(
-              stream: FirebaseFirestore.instance.collection('quedadas').snapshots(),
+              stream: FirebaseFirestore.instance.collection('canchas').snapshots(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
                 }
                 if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                  return const Center(child: Text('No hay quedadas disponibles.'));
+                  return const Center(child: Text('No hay canchas disponibles.'));
                 }
 
-                final quedadas = snapshot.data!.docs.map((doc) => Quedada.fromFirestore(doc)).toList();
+                final canchas = snapshot.data!.docs.map((doc) => Cancha.fromFirestore(doc)).toList();
 
-                final authViewModel = Provider.of<AuthViewModel>(context, listen: false);
                 return ListView.builder(
                   scrollDirection: Axis.horizontal,
                   physics: const BouncingScrollPhysics(),
-                  itemCount: quedadas.length,
+                  itemCount: canchas.length,
                   itemBuilder: (context, index) {
                     return Padding(
                       padding: EdgeInsets.only(right: size.width * 0.04),
-                      child: TournamentCard(size: size, quedada: quedadas[index], authViewModel: authViewModel),
+                      child: CanchaCard(size: size, cancha: canchas[index]),
                     );
                   },
                 );
