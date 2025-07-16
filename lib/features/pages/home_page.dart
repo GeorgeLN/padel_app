@@ -40,21 +40,56 @@ class _HomePageState extends State<HomePage> {
     final quedadasRef = FirebaseFirestore.instance.collection('quedadas');
     final snapshot = await quedadasRef.limit(1).get();
     if (snapshot.docs.isEmpty) {
+      // Quedada de las 8:00 AM con 6 partidos
       await quedadasRef.add({
-        'lugar': 'Padel Club Indoor',
+        'lugar': 'El Maracaná',
+        'fecha': Timestamp.now(),
+        'hora': '08:00',
+        'partidos': List.generate(6, (index) => {
+          'equipo1': [],
+          'equipo2': [],
+          'estado': 'disponible',
+          'resultado': null,
+        }),
+      });
+
+      // Quedada de las 10:00 AM con 6 partidos
+      await quedadasRef.add({
+        'lugar': 'El Maracaná',
+        'fecha': Timestamp.now(),
+        'hora': '10:00',
+        'partidos': List.generate(6, (index) => {
+          'equipo1': [],
+          'equipo2': [],
+          'estado': 'disponible',
+          'resultado': null,
+        }),
+      });
+
+      // Quedada de las 2:00 PM con 6 partidos
+      await quedadasRef.add({
+        'lugar': 'El Maracaná',
+        'fecha': Timestamp.now(),
+        'hora': '14:00',
+        'partidos': List.generate(6, (index) => {
+          'equipo1': [],
+          'equipo2': [],
+          'estado': 'disponible',
+          'resultado': null,
+        }),
+      });
+
+      // Quedada de las 6:00 PM con 6 partidos
+      await quedadasRef.add({
+        'lugar': 'El Maracaná',
         'fecha': Timestamp.now(),
         'hora': '18:00',
-        'jugadores': [],
-        'equipo1': [],
-        'equipo2': [],
-      });
-      await quedadasRef.add({
-        'lugar': 'Club de Tenis y Padel',
-        'fecha': Timestamp.fromDate(DateTime.now().add(const Duration(days: 1))),
-        'hora': '20:00',
-        'jugadores': [],
-        'equipo1': [],
-        'equipo2': [],
+        'partidos': List.generate(6, (index) => {
+          'equipo1': [],
+          'equipo2': [],
+          'estado': 'disponible',
+          'resultado': null,
+        }),
       });
     }
   }
