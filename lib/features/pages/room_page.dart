@@ -19,7 +19,8 @@ class RoomPage extends StatelessWidget {
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
             .collection('quedadas')
-            .where('fecha', isEqualTo: DateTime.now().toIso8601String().substring(0, 10))
+            .where('fecha', isGreaterThanOrEqualTo: DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day))
+            .where('fecha', isLessThan: DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day + 1))
             .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
