@@ -4,29 +4,20 @@ import 'package:padel_app/data/models/quedada_model.dart';
 import 'package:padel_app/features/design/app_colors.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
-class RoomPage extends StatefulWidget {
+class RoomPage extends StatelessWidget {
   final String quedadaId;
 
   const RoomPage({Key? key, required this.quedadaId}) : super(key: key);
 
   @override
-  _RoomPageState createState() => _RoomPageState();
-}
-
-class _RoomPageState extends State<RoomPage> {
-  int setActual = 1;
-  int? ganadorSet1;
-  int? ganadorSet2;
-
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Sala de Juego'),
+        title: const Text('Partidos de la Quedada'),
         backgroundColor: AppColors.primaryGreen,
       ),
       body: StreamBuilder<DocumentSnapshot>(
-        stream: FirebaseFirestore.instance.collection('quedadas').doc(widget.quedadaId).snapshots(),
+        stream: FirebaseFirestore.instance.collection('quedadas').doc(quedadaId).snapshots(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -37,89 +28,53 @@ class _RoomPageState extends State<RoomPage> {
 
           final quedada = Quedada.fromFirestore(snapshot.data!);
 
-          if (quedada.estadoQuedada == 'disponible') {
-            return _buildSalaDeEspera(context, quedada);
-          } else {
-            return _buildCuadroDeClasificacion(context, quedada);
-          }
+          return ListView.builder(
+            itemCount: quedada.partidos.length,
+            itemBuilder: (context, index) {
+              return PartidoCard(partido: quedada.partidos[index], quedadaId: quedadaId, partidoIndex: index);
+            },
+          );
         },
       ),
     );
   }
+}
 
-  Widget _buildSalaDeEspera(BuildContext context, Quedada quedada) {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('Lugar: ${quedada.lugar}', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 8),
-          Text('Fecha: ${quedada.fecha.day}/${quedada.fecha.month}/${quedada.fecha.year}', style: const TextStyle(fontSize: 16)),
-          const SizedBox(height: 8),
-          Text('Hora: ${quedada.hora}', style: const TextStyle(fontSize: 16)),
-          const SizedBox(height: 24),
-          const Text('Jugadores en la sala:', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 8),
-          Expanded(
-            child: ListView.builder(
-              itemCount: quedada.jugadores.length,
-              itemBuilder: (context, index) {
-                return ListTile(
-                  leading: const Icon(Icons.person),
-                  title: _buildPlayerName(quedada.jugadores[index]),
-                );
-              },
+class PartidoCard extends StatelessWidget {
+  final Partido partido;
+  final String quedadaId;
+  final int partidoIndex;
+
+  const PartidoCard({Key? key, required this.partido, required this.quedadaId, required this.partidoIndex}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: const EdgeInsets.all(8.0),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Partido ${partidoIndex + 1}', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _buildEquipo(context, 'Equipo 1', partido.equipo1),
+                const Text('VS'),
+                _buildEquipo(context, 'Equipo 2', partido.equipo2),
+              ],
             ),
-          ),
-          if (quedada.jugadores.length < 4)
+            const SizedBox(height: 16),
             Center(
-              child: Column(
-                children: [
-                  const CircularProgressIndicator(),
-                  const SizedBox(height: 16),
-                  Text('Esperando a ${4 - quedada.jugadores.length} jugador(es) más...'),
-                ],
+              child: ElevatedButton(
+                onPressed: () => _unirseAPartido(context),
+                child: const Text('Unirse'),
               ),
             ),
-          if (quedada.jugadores.length == 4)
-            const Center(
-              child: Text('¡Listos para jugar!', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.primaryGreen)),
-            ),
-          const SizedBox(height: 16),
-          ElevatedButton(
-            onPressed: () => _cancelarEspera(context, quedada),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-              minimumSize: const Size(double.infinity, 50),
-            ),
-            child: const Text('Cancelar Espera', style: TextStyle(color: Colors.white)),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildCuadroDeClasificacion(BuildContext context, Quedada quedada) {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildEquipo(context, 'Equipo 1', quedada.equipo1),
-              Padding(
-                padding: const EdgeInsets.only(top: 50.0),
-                child: Text('VS', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.primaryGreen)),
-              ),
-              _buildEquipo(context, 'Equipo 2', quedada.equipo2),
-            ],
-          ),
-          const Spacer(),
-          _buildBotonesDeSet(context, quedada),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -127,86 +82,42 @@ class _RoomPageState extends State<RoomPage> {
   Widget _buildEquipo(BuildContext context, String nombreEquipo, List<String> jugadores) {
     return Column(
       children: [
-        Text(nombreEquipo, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-        const SizedBox(height: 8),
-        ...jugadores.map((uid) => Padding(
-              padding: const EdgeInsets.symmetric(vertical: 4.0),
-              child: _buildPlayerName(uid),
-            )),
+        Text(nombreEquipo, style: const TextStyle(fontWeight: FontWeight.bold)),
+        ...jugadores.map((uid) => _buildPlayerName(uid)).toList(),
+        if (jugadores.length < 2)
+          ...List.generate(2 - jugadores.length, (index) => const Text('Disponible')),
       ],
     );
   }
 
-  Widget _buildBotonesDeSet(BuildContext context, Quedada quedada) {
-    if (setActual == 1 || setActual == 2) {
-      return Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          ElevatedButton(onPressed: () => _ganarSet(1), child: Text('Gana Set $setActual Equipo 1')),
-          ElevatedButton(onPressed: () => _ganarSet(2), child: Text('Gana Set $setActual Equipo 2')),
-        ],
-      );
-    } else if (setActual == 3) {
-      if (ganadorSet1 != ganadorSet2) {
-        // Alguien ganó 2-0
-        return ElevatedButton(onPressed: _finalizarJuego, child: const Text('Finalizar Juego'));
-      } else {
-        // Empate 1-1, vamos al tercer set
-        return Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            ElevatedButton(onPressed: () => _ganarSet(1), child: const Text('Gana Set 3 Equipo 1')),
-            ElevatedButton(onPressed: () => _ganarSet(2), child: const Text('Gana Set 3 Equipo 2')),
-          ],
-        );
-      }
-    } else {
-      // setActual > 3, el juego terminó
-      return Column(
-        children: [
-          Text('Juego Finalizado. Ganador: Equipo ${ganadorSet1 == ganadorSet2 ? ganadorSet2 : ganadorSet1}'),
-          const SizedBox(height: 16),
-          ElevatedButton(onPressed: _finalizarJuego, child: const Text('Ver Resultados')),
-        ],
-      );
-    }
-  }
-
-  void _ganarSet(int equipo) {
-    setState(() {
-      if (setActual == 1) {
-        ganadorSet1 = equipo;
-      } else if (setActual == 2) {
-        ganadorSet2 = equipo;
-      }
-      setActual++;
-    });
-  }
-
-  void _finalizarJuego() {
-    // Lógica para finalizar el juego, actualizar estadísticas, etc.
-    Navigator.pop(context);
-  }
-
-  void _cancelarEspera(BuildContext context, Quedada quedada) async {
+  Future<void> _unirseAPartido(BuildContext context) async {
     final User? currentUser = FirebaseAuth.instance.currentUser;
     if (currentUser == null) return;
 
-    final quedadaRef = FirebaseFirestore.instance.collection('quedadas').doc(widget.quedadaId);
-    final userRef = FirebaseFirestore.instance.collection('usuarios').doc(currentUser.uid);
+    final quedadaRef = FirebaseFirestore.instance.collection('quedadas').doc(quedadaId);
 
-    await FirebaseFirestore.instance.runTransaction((transaction) async {
-      final freshQuedadaSnapshot = await transaction.get(quedadaRef);
-      final freshQuedada = Quedada.fromFirestore(freshQuedadaSnapshot);
+    try {
+      await FirebaseFirestore.instance.runTransaction((transaction) async {
+        final freshSnapshot = await transaction.get(quedadaRef);
+        final quedada = Quedada.fromFirestore(freshSnapshot);
 
-      if (freshQuedada.jugadores.contains(currentUser.uid)) {
-        final newJugadores = List<String>.from(freshQuedada.jugadores)..remove(currentUser.uid);
-        transaction.update(quedadaRef, {'jugadores': newJugadores});
-        transaction.update(userRef, {'estado': 'disponible'});
-      }
-    });
+        // Lógica para encontrar un hueco y añadir al jugador
+        // Esto es un ejemplo simple, se puede hacer más complejo
+        if (quedada.partidos[partidoIndex].equipo1.length < 2) {
+          quedada.partidos[partidoIndex].equipo1.add(currentUser.uid);
+        } else if (quedada.partidos[partidoIndex].equipo2.length < 2) {
+          quedada.partidos[partidoIndex].equipo2.add(currentUser.uid);
+        } else {
+          // No hay hueco
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Este partido ya está lleno.')));
+          return;
+        }
 
-    Navigator.pop(context);
+        transaction.update(quedadaRef, {'partidos': quedada.partidos.map((p) => p.toMap()).toList()});
+      });
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error al unirse: $e')));
+    }
   }
 
   Widget _buildPlayerName(String uid) {
@@ -214,13 +125,13 @@ class _RoomPageState extends State<RoomPage> {
       future: FirebaseFirestore.instance.collection('usuarios').doc(uid).get(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Text('Cargando...');
+          return const Text('...');
         }
         if (!snapshot.hasData || !snapshot.data!.exists) {
-          return const Text('Jugador no encontrado');
+          return const Text('Desconocido');
         }
         final userData = snapshot.data!.data() as Map<String, dynamic>;
-        return Text(userData['nombre'] ?? 'Nombre no disponible');
+        return Text(userData['nombre'] ?? 'N/A');
       },
     );
   }
