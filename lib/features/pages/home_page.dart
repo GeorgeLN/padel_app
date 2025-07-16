@@ -49,7 +49,7 @@ class _HomePageState extends State<HomePage> {
           'equipo1': [],
           'equipo2': [],
           'estado': 'disponible',
-          'resultado': null,
+          'resultado': {},
         }),
       });
 
@@ -62,7 +62,7 @@ class _HomePageState extends State<HomePage> {
           'equipo1': [],
           'equipo2': [],
           'estado': 'disponible',
-          'resultado': null,
+          'resultado': {},
         }),
       });
 
@@ -75,7 +75,7 @@ class _HomePageState extends State<HomePage> {
           'equipo1': [],
           'equipo2': [],
           'estado': 'disponible',
-          'resultado': null,
+          'resultado': {},
         }),
       });
 
@@ -88,7 +88,7 @@ class _HomePageState extends State<HomePage> {
           'equipo1': [],
           'equipo2': [],
           'estado': 'disponible',
-          'resultado': null,
+          'resultado': {},
         }),
       });
     }
