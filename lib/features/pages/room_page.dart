@@ -68,9 +68,11 @@ class PartidoCard extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Center(
-              child: ElevatedButton(
-                onPressed: () => _unirseAPartido(context),
-                child: const Text('Unirse'),
+              child: Builder(
+                builder: (context) => ElevatedButton(
+                  onPressed: () => _unirseAPartido(context),
+                  child: const Text('Unirse'),
+                ),
               ),
             ),
           ],
@@ -101,12 +103,19 @@ class PartidoCard extends StatelessWidget {
         final freshSnapshot = await transaction.get(quedadaRef);
         final quedada = Quedada.fromFirestore(freshSnapshot);
 
+        final partido = quedada.partidos[partidoIndex];
+
+        // Comprobar si el usuario ya está en el partido
+        if (partido.equipo1.contains(currentUser.uid) || partido.equipo2.contains(currentUser.uid)) {
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Ya estás en este partido.')));
+          return;
+        }
+
         // Lógica para encontrar un hueco y añadir al jugador
-        // Esto es un ejemplo simple, se puede hacer más complejo
-        if (quedada.partidos[partidoIndex].equipo1.length < 2) {
-          quedada.partidos[partidoIndex].equipo1.add(currentUser.uid);
-        } else if (quedada.partidos[partidoIndex].equipo2.length < 2) {
-          quedada.partidos[partidoIndex].equipo2.add(currentUser.uid);
+        if (partido.equipo1.length < 2) {
+          partido.equipo1.add(currentUser.uid);
+        } else if (partido.equipo2.length < 2) {
+          partido.equipo2.add(currentUser.uid);
         } else {
           // No hay hueco
           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Este partido ya está lleno.')));
