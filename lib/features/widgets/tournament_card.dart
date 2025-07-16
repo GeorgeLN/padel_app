@@ -71,7 +71,6 @@ class TournamentCard extends StatelessWidget {
                   children: [
                     _buildTournamentInfoChip(size, Icons.calendar_today_outlined, '${quedada.fecha.day}/${quedada.fecha.month} - ${quedada.hora}'),
                     SizedBox(height: size.height * 0.008),
-                    _buildTournamentInfoChip(size, Icons.groups_rounded, '${quedada.jugadores.length}/4 Jugadores'),
                   ],
                 ),
                 GestureDetector(
@@ -87,7 +86,7 @@ class TournamentCard extends StatelessWidget {
                     final latestQuedada = Quedada.fromFirestore(latestQuedadaSnapshot);
 
                     // Comprobar si la quedada está llena o ya ha comenzado
-                    if (latestQuedada.jugadores.length >= 4 || latestQuedada.equipo1.isNotEmpty) {
+                    /*if (latestQuedada.jugadores.length >= 4 || latestQuedada.equipo1.isNotEmpty) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
                           content: Text('No puedes unirte a esta quedada, ya está llena o en curso.'),
@@ -95,7 +94,7 @@ class TournamentCard extends StatelessWidget {
                         ),
                       );
                       return; // Detener la ejecución
-                    }
+                    }*/
 
                     await FirebaseFirestore.instance.runTransaction((transaction) async {
                       // Volver a obtener los datos dentro de la transacción para asegurar consistencia
@@ -103,7 +102,7 @@ class TournamentCard extends StatelessWidget {
                       final freshQuedada = Quedada.fromFirestore(freshQuedadaSnapshot);
 
                       // Doble verificación dentro de la transacción por si acaso
-                      if (freshQuedada.jugadores.length < 4 && !freshQuedada.jugadores.contains(currentUser.uid)) {
+                      /*if (freshQuedada.jugadores.length < 4 && !freshQuedada.jugadores.contains(currentUser.uid)) {
                         final newJugadores = List<String>.from(freshQuedada.jugadores)..add(currentUser.uid);
                         transaction.update(quedadaRef, {'jugadores': newJugadores});
 
@@ -123,7 +122,7 @@ class TournamentCard extends StatelessWidget {
                         } else {
                           transaction.update(userRef, {'estado': 'en cola'});
                         }
-                      }
+                      }*/
                     });
 
                     Navigator.push(

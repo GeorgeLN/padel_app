@@ -121,7 +121,7 @@ class PartidoCard extends StatelessWidget {
           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Este partido ya está lleno.')));
           return;
         }
-
+        
         transaction.update(quedadaRef, {'partidos': quedada.partidos.map((p) => p.toMap()).toList()});
       });
     } catch (e) {
