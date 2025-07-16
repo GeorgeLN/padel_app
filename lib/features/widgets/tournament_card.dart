@@ -30,13 +30,13 @@ class TournamentCard extends StatelessWidget {
           image: const AssetImage('assets/images/tournament_image1.png'),
           fit: BoxFit.cover,
           colorFilter: ColorFilter.mode(
-            Colors.black.withValues(alpha: 0.3),
+            Colors.black.withOpacity(0.3),
             BlendMode.darken,
           ),
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.15),
+            color: Colors.black.withOpacity(0.15),
             spreadRadius: 1,
             blurRadius: 8,
             offset: const Offset(0, 4),
@@ -56,7 +56,7 @@ class TournamentCard extends StatelessWidget {
                 color: AppColors.textWhite,
                 fontWeight: FontWeight.w900,
                 shadows: [
-                  Shadow(blurRadius: 3.0, color: Colors.black.withValues(alpha: 0.6), offset: const Offset(1.5, 1.5)),
+                  Shadow(blurRadius: 3.0, color: Colors.black.withOpacity(0.6), offset: const Offset(1.5, 1.5)),
                 ],
               ),
               maxLines: 2,
@@ -74,57 +74,7 @@ class TournamentCard extends StatelessWidget {
                   ],
                 ),
                 GestureDetector(
-                  onTap: () async {
-                    final User? currentUser = FirebaseAuth.instance.currentUser;
-                    if (currentUser == null) return;
-
-                    final quedadaRef = FirebaseFirestore.instance.collection('quedadas').doc(quedada.id);
-                    final userRef = FirebaseFirestore.instance.collection('usuarios').doc(currentUser.uid);
-
-                    // Obtener los datos más recientes de la quedada antes de la transacción
-                    final latestQuedadaSnapshot = await quedadaRef.get();
-                    final latestQuedada = Quedada.fromFirestore(latestQuedadaSnapshot);
-
-                    // Comprobar si la quedada está llena o ya ha comenzado
-                    /*if (latestQuedada.jugadores.length >= 4 || latestQuedada.equipo1.isNotEmpty) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('No puedes unirte a esta quedada, ya está llena o en curso.'),
-                          backgroundColor: Colors.red,
-                        ),
-                      );
-                      return; // Detener la ejecución
-                    }*/
-
-                    await FirebaseFirestore.instance.runTransaction((transaction) async {
-                      // Volver a obtener los datos dentro de la transacción para asegurar consistencia
-                      final freshQuedadaSnapshot = await transaction.get(quedadaRef);
-                      final freshQuedada = Quedada.fromFirestore(freshQuedadaSnapshot);
-
-                      // Doble verificación dentro de la transacción por si acaso
-                      /*if (freshQuedada.jugadores.length < 4 && !freshQuedada.jugadores.contains(currentUser.uid)) {
-                        final newJugadores = List<String>.from(freshQuedada.jugadores)..add(currentUser.uid);
-                        transaction.update(quedadaRef, {'jugadores': newJugadores});
-
-                        if (newJugadores.length == 4) {
-                          newJugadores.shuffle();
-                          final equipo1 = newJugadores.sublist(0, 2);
-                          final equipo2 = newJugadores.sublist(2, 4);
-                          transaction.update(quedadaRef, {
-                            'equipo1': equipo1,
-                            'equipo2': equipo2,
-                            'estadoQuedada': 'en curso', // Cambiar estado a "en curso"
-                          });
-
-                          for (var jugadorId in newJugadores) {
-                            transaction.update(FirebaseFirestore.instance.collection('usuarios').doc(jugadorId), {'estado': 'en partida'});
-                          }
-                        } else {
-                          transaction.update(userRef, {'estado': 'en cola'});
-                        }
-                      }*/
-                    });
-
+                  onTap: () {
                     Navigator.push(
                       context,
                       MaterialPageRoute(builder: (context) => RoomPage(quedadaId: quedada.id)),
@@ -157,7 +107,7 @@ class TournamentCard extends StatelessWidget {
       padding: EdgeInsets.symmetric(horizontal: size.width * 0.02, vertical: size.height * 0.006),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(8),
-        color: AppColors.textWhite.withValues(alpha: 0.85),
+        color: AppColors.textWhite.withOpacity(0.85),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
