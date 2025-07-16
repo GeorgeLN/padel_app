@@ -3,7 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class Quedada {
   final String id;
   final String lugar;
-  final DateTime fecha;
+  final String fecha;
   final String hora;
   final List<String> equipo1;
   final List<String> equipo2;
@@ -32,7 +32,7 @@ class Quedada {
     return Quedada(
       id: doc.id,
       lugar: data['lugar'] ?? '',
-      fecha: (data['fecha'] as Timestamp).toDate(),
+      fecha: data['fecha'] ?? '',
       hora: data['hora'] ?? '',
       equipo1: List<String>.from(data['equipo1'] ?? []),
       equipo2: List<String>.from(data['equipo2'] ?? []),

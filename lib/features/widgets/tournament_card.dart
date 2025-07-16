@@ -69,7 +69,7 @@ class TournamentCard extends StatelessWidget {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildTournamentInfoChip(size, Icons.calendar_today_outlined, '${quedada.fecha.day}/${quedada.fecha.month} - ${quedada.hora}'),
+                    _buildTournamentInfoChip(size, Icons.calendar_today_outlined, '${quedada.fecha} - ${quedada.hora}'),
                     SizedBox(height: size.height * 0.008),
                   ],
                 ),
