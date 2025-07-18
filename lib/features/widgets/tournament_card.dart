@@ -75,7 +75,7 @@ class TournamentCard extends StatelessWidget {
                   onTap: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => RoomPage(quedadaId: quedada.id)),
+                      MaterialPageRoute(builder: (context) => RoomPage(canchaId: quedada.id)),
                     );
                   },
                   child: Container(
