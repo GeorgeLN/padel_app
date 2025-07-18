@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:intl/intl.dart';
 import 'package:padel_app/data/models/quedada_model.dart';
 import 'package:padel_app/features/design/app_colors.dart';
 import 'package:padel_app/features/pages/home_page.dart';
@@ -7,7 +8,7 @@ import 'package:padel_app/features/pages/landing_page.dart';
 
 class BookingPage extends StatefulWidget {
   final String canchaNombre;
-  final String fecha;
+  final DateTime fecha;
   final String hora;
 
   const BookingPage({
@@ -24,6 +25,43 @@ class BookingPage extends StatefulWidget {
 class _BookingPageState extends State<BookingPage> {
   final _formKey = GlobalKey<FormState>();
   final _nombreController = TextEditingController();
+  late DateTime _selectedDate;
+  late TimeOfDay _selectedTime;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedDate = widget.fecha;
+    _selectedTime = TimeOfDay(
+        hour: int.parse(widget.hora.split(':')[0]),
+        minute: int.parse(widget.hora.split(':')[1]));
+  }
+
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: _selectedDate,
+      firstDate: DateTime.now(),
+      lastDate: DateTime(2101),
+    );
+    if (picked != null && picked != _selectedDate) {
+      setState(() {
+        _selectedDate = picked;
+      });
+    }
+  }
+
+  Future<void> _selectTime(BuildContext context) async {
+    final TimeOfDay? picked = await showTimePicker(
+      context: context,
+      initialTime: _selectedTime,
+    );
+    if (picked != null && picked != _selectedTime) {
+      setState(() {
+        _selectedTime = picked;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -50,6 +88,31 @@ class _BookingPageState extends State<BookingPage> {
                 },
               ),
               const SizedBox(height: 20),
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                        'Fecha: ${DateFormat('dd/MM/yyyy').format(_selectedDate)}'),
+                  ),
+                  ElevatedButton(
+                    onPressed: () => _selectDate(context),
+                    child: const Text('Seleccionar Fecha'),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              Row(
+                children: [
+                  Expanded(
+                    child: Text('Hora: ${_selectedTime.format(context)}'),
+                  ),
+                  ElevatedButton(
+                    onPressed: () => _selectTime(context),
+                    child: const Text('Seleccionar Hora'),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: () {
                   if (_formKey.currentState!.validate()) {
@@ -69,8 +132,8 @@ class _BookingPageState extends State<BookingPage> {
     final nuevaQuedada = Quedada(
       id: '', // Firestore will generate the ID
       lugar: widget.canchaNombre,
-      fecha: widget.fecha,
-      hora: widget.hora,
+      fecha: DateFormat('dd/MM/yyyy').format(_selectedDate),
+      hora: _selectedTime.format(context),
       equipo1: [_nombreController.text, ''],
       equipo2: ['', ''],
       estado: 'En espera',

@@ -137,7 +137,7 @@ class _RoomPageState extends State<RoomPage> {
                                 MaterialPageRoute(
                                   builder: (context) => BookingPage(
                                     canchaNombre: cancha.nombre,
-                                    fecha: formattedDate,
+                                    fecha: _selectedDate,
                                     hora: horaString,
                                   ),
                                 ),
