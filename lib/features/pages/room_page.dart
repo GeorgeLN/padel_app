@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:padel_app/data/models/cancha_model.dart';
 import 'package:padel_app/data/models/quedada_model.dart';
 import 'package:padel_app/features/design/app_colors.dart';
+import 'package:padel_app/features/pages/booking_page.dart';
 import 'package:padel_app/features/pages/canchas_page.dart';
 
 class RoomPage extends StatefulWidget {
@@ -129,7 +130,35 @@ class _RoomPageState extends State<RoomPage> {
                           subtitle: Text(estado),
                           trailing: Icon(Icons.circle, color: color),
                           onTap: () {
-                            if (quedadaExistente.id.isNotEmpty) {
+                            if (quedadaExistente.id.isEmpty) {
+                              // Disponible
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => BookingPage(
+                                    canchaNombre: cancha.nombre,
+                                    fecha: formattedDate,
+                                    hora: horaString,
+                                  ),
+                                ),
+                              );
+                            } else if (quedadaExistente.estado == 'En transcurso') {
+                              showDialog(
+                                context: context,
+                                builder: (context) => AlertDialog(
+                                  title: const Text('Horario no disponible'),
+                                  content: const Text(
+                                      'Esta hora ya está reservada y el partido está en transcurso.'),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () => Navigator.of(context).pop(),
+                                      child: const Text('Aceptar'),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            } else {
+                              // Navegar a los detalles de la quedada si no está en transcurso
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
