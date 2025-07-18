@@ -42,7 +42,26 @@ class _EditProfileDataPageState extends State<EditProfileDataPage> {
     _puntosPosController = TextEditingController();
     _rankingController = TextEditingController();
     _subcategoriaController = TextEditingController();
-    _loadUserData();
+
+    // Añadir listeners para el cálculo automático
+    _puntosController.addListener(_calcularEfectividad);
+    _asistenciasController.addListener(_calcularEfectividad);
+
+    _loadUserData().then((_) {
+      _calcularEfectividad();
+    });
+  }
+
+  void _calcularEfectividad() {
+    final puntos = int.tryParse(_puntosController.text);
+    final asistencias = int.tryParse(_asistenciasController.text);
+
+    if (puntos != null && asistencias != null && asistencias > 0) {
+      final efectividad = (puntos / (asistencias * 3)) * 100;
+      _efectividadController.text = efectividad.toStringAsFixed(2).replaceAll('.', ',');
+    } else {
+      _efectividadController.text = '0,00';
+    }
   }
 
   Future<void> _loadUserData() async {
@@ -59,7 +78,7 @@ class _EditProfileDataPageState extends State<EditProfileDataPage> {
         // Inicializar controladores con los datos del usuario
         _asistenciasController.text = _usuario!.asistencias.toString();
         _bonificacionesController.text = _usuario!.bonificaciones.toString();
-        _efectividadController.text = _usuario!.efectividad.toString();
+        _efectividadController.text = _usuario!.efectividad.toString().replaceAll('.', ',');
         _penalizacionesController.text = _usuario!.penalizaciones.toString();
         _puntosController.text = _usuario!.puntos.toString();
         _puntosPosController.text = _usuario!.puntos_pos.toString();
@@ -107,10 +126,14 @@ class _EditProfileDataPageState extends State<EditProfileDataPage> {
         _isSaving = true;
       });
 
+      // Reemplazar coma por punto para el parseo de double
+      final efectividadString = _efectividadController.text.replaceAll(',', '.');
+      final efectividadValue = double.tryParse(efectividadString) ?? _usuario!.efectividad;
+
       Usuario usuarioActualizado = _usuario!.copyWith(
         asistencias: int.tryParse(_asistenciasController.text) ?? _usuario!.asistencias,
         bonificaciones: int.tryParse(_bonificacionesController.text) ?? _usuario!.bonificaciones,
-        efectividad: double.tryParse(_efectividadController.text) ?? _usuario!.efectividad,
+        efectividad: efectividadValue,
         penalizaciones: int.tryParse(_penalizacionesController.text) ?? _usuario!.penalizaciones,
         puntos: int.tryParse(_puntosController.text) ?? _usuario!.puntos,
         puntos_pos: int.tryParse(_puntosPosController.text) ?? _usuario!.puntos_pos,
@@ -126,6 +149,7 @@ class _EditProfileDataPageState extends State<EditProfileDataPage> {
       if (!mounted) return;
 
       setState(() {
+        _calcularEfectividad();
         _isSaving = false; // Cambiado de _isLoading a _isSaving
       });
 
@@ -277,7 +301,7 @@ class _EditProfileDataPageState extends State<EditProfileDataPage> {
       controller: controller,
       style: GoogleFonts.lato(color: AppColors.textWhite, fontSize: size.width * 0.04),
       keyboardType: keyboardType, // Aplicado keyboardType
-      enabled: labelText == 'Efectividad (%)' ?  false : true,
+      readOnly: labelText == 'Efectividad (%)',
       decoration: InputDecoration(
         labelText: labelText,
         labelStyle: GoogleFonts.lato(color: AppColors.textLightGray.withValues(alpha: 0.8), fontSize: size.width * 0.04),

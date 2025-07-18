@@ -220,7 +220,7 @@ class ConfigurationButton extends StatelessWidget {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => EditProfileDataPage(userId: ''),
+              builder: (context) => EditProfileDataPage(userId: usuario.uid),
             ),
           );
         },

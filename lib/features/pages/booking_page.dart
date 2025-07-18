@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:padel_app/data/models/quedada_model.dart';
 import 'package:padel_app/features/design/app_colors.dart';
-import 'package:padel_app/features/pages/home_page.dart';
-import 'package:padel_app/features/pages/landing_page.dart';
+import 'package:padel_app/features/pages/_pages.dart';
 
 class BookingPage extends StatefulWidget {
   final String canchaNombre;
