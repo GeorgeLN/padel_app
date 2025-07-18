@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:padel_app/data/models/quedada_model.dart';
 import 'package:padel_app/features/design/app_colors.dart';
 import 'package:padel_app/features/pages/home_page.dart';
+import 'package:padel_app/features/pages/landing_page.dart';
 
 class BookingPage extends StatefulWidget {
   final String canchaNombre;
@@ -87,7 +88,7 @@ class _BookingPageState extends State<BookingPage> {
         const SnackBar(content: Text('Reserva confirmada')),
       );
       Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (context) => const HomePage()),
+        MaterialPageRoute(builder: (context) => const LandingPage()),
         (Route<dynamic> route) => false,
       );
     }).catchError((error) {

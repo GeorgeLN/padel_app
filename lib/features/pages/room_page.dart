@@ -115,7 +115,7 @@ class _RoomPageState extends State<RoomPage> {
                             DateTime quedadaTime = DateFormat('HH:mm').parse(quedadaExistente.hora);
                             DateTime quedadaDateTime = DateTime(_selectedDate.year, _selectedDate.month, _selectedDate.day, quedadaTime.hour, quedadaTime.minute);
 
-                            if (now.isAfter(quedadaDateTime)) {
+                            if (!now.isAfter(quedadaDateTime)) {
                               estado = 'Finalizado';
                               color = Colors.red;
                             } else {

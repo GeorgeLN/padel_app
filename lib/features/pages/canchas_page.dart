@@ -16,7 +16,8 @@ class CanchasPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Canchas'),
-        backgroundColor: AppColors.primaryGreen,
+        centerTitle: true,
+        backgroundColor: AppColors.primaryBlue,
       ),
       body: StreamBuilder<DocumentSnapshot>(
         stream: FirebaseFirestore.instance.collection('quedadas').doc(quedadaId).snapshots(),

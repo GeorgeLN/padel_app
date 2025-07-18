@@ -277,6 +277,7 @@ class _EditProfileDataPageState extends State<EditProfileDataPage> {
       controller: controller,
       style: GoogleFonts.lato(color: AppColors.textWhite, fontSize: size.width * 0.04),
       keyboardType: keyboardType, // Aplicado keyboardType
+      enabled: labelText == 'Efectividad (%)' ?  false : true,
       decoration: InputDecoration(
         labelText: labelText,
         labelStyle: GoogleFonts.lato(color: AppColors.textLightGray.withValues(alpha: 0.8), fontSize: size.width * 0.04),
