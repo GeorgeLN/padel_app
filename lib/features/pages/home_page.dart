@@ -224,7 +224,7 @@ class PlayerAppBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     String displayName = playerName ?? 'Jugador';
-    Color statusColor = _getStatusColor(playerStatus);
+    // Color statusColor = _getStatusColor(playerStatus);
 
     return Container(
       width: size.width,
