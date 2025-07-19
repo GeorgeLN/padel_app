@@ -22,6 +22,8 @@ class _EditProfileDataPageState extends State<EditProfileDataPage> {
   bool _isSaving = false; // Para el estado de guardado
 
   // Controladores para los campos editables
+  late TextEditingController _nombreController;
+  late TextEditingController _descripcionController;
   late TextEditingController _asistenciasController;
   late TextEditingController _bonificacionesController;
   late TextEditingController _efectividadController;
@@ -34,6 +36,8 @@ class _EditProfileDataPageState extends State<EditProfileDataPage> {
   @override
   void initState() {
     super.initState();
+    _nombreController = TextEditingController();
+    _descripcionController = TextEditingController();
     _asistenciasController = TextEditingController();
     _bonificacionesController = TextEditingController();
     _efectividadController = TextEditingController();
@@ -76,6 +80,8 @@ class _EditProfileDataPageState extends State<EditProfileDataPage> {
       if (userDoc.exists) {
         _usuario = Usuario.fromJson(userDoc.data() as Map<String, dynamic>);
         // Inicializar controladores con los datos del usuario
+        _nombreController.text = _usuario!.nombre;
+        _descripcionController.text = _usuario!.descripcionPerfil;
         _asistenciasController.text = _usuario!.asistencias.toString();
         _bonificacionesController.text = _usuario!.bonificaciones.toString();
         _efectividadController.text = _usuario!.efectividad.toString().replaceAll('.', ',');
@@ -109,6 +115,8 @@ class _EditProfileDataPageState extends State<EditProfileDataPage> {
 
   @override
   void dispose() {
+    _nombreController.dispose();
+    _descripcionController.dispose();
     _asistenciasController.dispose();
     _bonificacionesController.dispose();
     _efectividadController.dispose();
@@ -131,6 +139,8 @@ class _EditProfileDataPageState extends State<EditProfileDataPage> {
       final efectividadValue = double.tryParse(efectividadString) ?? _usuario!.efectividad;
 
       Usuario usuarioActualizado = _usuario!.copyWith(
+        nombre: _nombreController.text,
+        descripcionPerfil: _descripcionController.text,
         asistencias: int.tryParse(_asistenciasController.text) ?? _usuario!.asistencias,
         bonificaciones: int.tryParse(_bonificacionesController.text) ?? _usuario!.bonificaciones,
         efectividad: efectividadValue,
@@ -197,6 +207,21 @@ class _EditProfileDataPageState extends State<EditProfileDataPage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: <Widget>[
+                        _buildTextFormField(
+                          controller: _nombreController,
+                          labelText: 'Nombre',
+                          validatorText: 'Ingresa un nombre válido.',
+                          size: size,
+                        ),
+                        SizedBox(height: size.height * 0.025),
+                        _buildTextFormField(
+                          controller: _descripcionController,
+                          labelText: 'Descripción del Perfil',
+                          validatorText: 'Ingresa una descripción válida.',
+                          maxLines: 3,
+                          size: size,
+                        ),
+                        SizedBox(height: size.height * 0.025),
                         _buildTextFormField(
                           controller: _asistenciasController,
                           labelText: 'Asistencias',
