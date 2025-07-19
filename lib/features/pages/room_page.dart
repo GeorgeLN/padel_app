@@ -105,13 +105,24 @@ class _RoomPageState extends State<RoomPage> {
 
                         String estado = 'Disponible';
                         Color color = Colors.green;
+                        bool isEnabled = true;
 
+                        DateTime now = DateTime.now();
+                        DateTime slotTime = DateTime(_selectedDate.year, _selectedDate.month, _selectedDate.day, hora);
+
+                        if (_selectedDate.day == now.day && _selectedDate.month == now.month && _selectedDate.year == now.year) {
+                          if (hora < now.hour) {
+                            estado = 'No disponible';
+                            color = Colors.grey;
+                            isEnabled = false;
+                          }
+                        }
+                        
                         if (quedadaExistente.id.isNotEmpty) {
                           if (quedadaExistente.estado == 'En transcurso') {
                             estado = 'Ocupado';
                             color = Colors.blue;
                           } else {
-                            DateTime now = DateTime.now();
                             DateTime quedadaTime = DateFormat('HH:mm').parse(quedadaExistente.hora);
                             DateTime quedadaDateTime = DateTime(_selectedDate.year, _selectedDate.month, _selectedDate.day, quedadaTime.hour, quedadaTime.minute);
 
@@ -129,7 +140,8 @@ class _RoomPageState extends State<RoomPage> {
                           title: Text(horaString),
                           subtitle: Text(estado),
                           trailing: Icon(Icons.circle, color: color),
-                          onTap: () {
+                          enabled: isEnabled,
+                          onTap: isEnabled ? () {
                             if (quedadaExistente.id.isEmpty) {
                               // Disponible
                               Navigator.push(
@@ -167,7 +179,7 @@ class _RoomPageState extends State<RoomPage> {
                                 ),
                               );
                             }
-                          },
+                          } : null,
                         );
                       },
                     );
