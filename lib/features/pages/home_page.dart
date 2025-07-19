@@ -240,15 +240,15 @@ class PlayerAppBar extends StatelessWidget {
           Expanded(
             child: Row(
               children: [
-                Container(
+                /*Container(
                   width: 12,
                   height: 12,
                   decoration: BoxDecoration(
                     color: statusColor,
                     shape: BoxShape.circle,
                   ),
-                ),
-                const SizedBox(width: 8),
+                ),*/
+                // const SizedBox(width: 8),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
