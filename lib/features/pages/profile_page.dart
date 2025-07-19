@@ -217,12 +217,12 @@ class ConfigurationButton extends StatelessWidget {
           ),
         ),
         onPressed: () {
-          Navigator.push(
+          /*Navigator.push(
             context,
             MaterialPageRoute(
               builder: (context) => EditProfileDataPage(userId: usuario.uid),
             ),
-          );
+          );*/
         },
         child: Text(
           'Editar Perfil', // Cambiado de 'Configurar'
