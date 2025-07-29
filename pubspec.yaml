@@ -40,7 +40,7 @@ dependencies:
   firebase_core: ^3.15.1
   firebase_auth: ^5.0.0 # Agregado para autenticación
   cloud_firestore: ^5.0.0 # Agregado para base de datos Firestore
-  provider: ^6.0.0 # Agregado para gestión de estado con ChangeNotifier
+  provider: ^6.1.5 # Agregado para gestión de estado con ChangeNotifier
   intl: ^0.20.2
   
 

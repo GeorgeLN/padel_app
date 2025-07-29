@@ -8,7 +8,6 @@ import 'dart:async';
 import '../../data/models/user_model.dart';
 import '../../data/viewmodels/auth_viewmodel.dart';
 import 'auth_wrapper.dart';
-import 'edit_profile_data_page.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});

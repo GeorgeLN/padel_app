@@ -121,14 +121,14 @@ class MajorTournaments extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: size.width, // Ocupar todo el ancho disponible
+      width: size.width, // Ocupar el ancho disponible
       padding: EdgeInsets.symmetric(horizontal: size.width * 0.05), // Padding horizontal
       margin: EdgeInsets.only(top: size.height * 0.02),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Canchas Disponibles',
+            'Clubes Disponibles',
             style: GoogleFonts.lato(
               fontSize: size.width * 0.05,
               color: AppColors.textBlack,
@@ -290,7 +290,7 @@ class PlayerAppBar extends StatelessWidget {
     );
   }
 
-  Color _getStatusColor(String? status) {
+/*  Color _getStatusColor(String? status) {
     switch (status) {
       case 'disponible':
         return Colors.green;
@@ -301,5 +301,5 @@ class PlayerAppBar extends StatelessWidget {
       default:
         return Colors.grey;
     }
-  }
+  }*/
 }
