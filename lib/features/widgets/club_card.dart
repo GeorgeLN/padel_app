@@ -1,27 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:padel_app/features/design/app_colors.dart';
-import 'package:padel_app/data/models/cancha_model.dart';
+import 'package:padel_app/data/models/club_model.dart';
 import 'package:padel_app/features/pages/room_page.dart';
 
-class CanchaCard extends StatelessWidget {
-  const CanchaCard({
+class ClubCard extends StatelessWidget {
+  const ClubCard({
     super.key,
     required this.size,
-    required this.cancha,
+    required this.club,
   });
 
   final Size size;
-  final Cancha cancha;
+  final Club club;
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => RoomPage(canchaId: cancha.id)),
-        );
+        // Navigator.push(
+        //   context,
+        //   MaterialPageRoute(builder: (context) => RoomPage(canchaId: club.id)),
+        // );
       },
       child: Container(
         width: size.width * 0.8,
@@ -52,7 +52,7 @@ class CanchaCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                cancha.nombre,
+                club.nombre,
                 style: GoogleFonts.lato(
                   fontSize: size.width * 0.055,
                   color: AppColors.textWhite,
@@ -71,9 +71,9 @@ class CanchaCard extends StatelessWidget {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildInfoChip(size, Icons.location_on_outlined, cancha.direccion),
+                      _buildInfoChip(size, Icons.location_on_outlined, club.direccion),
                       SizedBox(height: size.height * 0.008),
-                      _buildInfoChip(size, Icons.sports_tennis_outlined, '${cancha.disponibles} de ${cancha.cantidad} canchas disponibles'),
+                      _buildInfoChip(size, Icons.business_outlined, club.ciudad),
                     ],
                   ),
                   Container(
