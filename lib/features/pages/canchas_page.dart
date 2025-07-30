@@ -41,9 +41,7 @@ class CanchasPage extends StatelessWidget {
                 return const Center(child: Text('No hay canchas disponibles.'));
               }
 
-              final clubes = canchaSnapshot.data!.docs
-                  .map((doc) => Club.fromFirestore(doc))
-                  .toList();
+              final clubes = canchaSnapshot.data!.docs.map((doc) => Club.fromFirestore(doc)).toList();
               final cancha = clubes.firstWhere((c) => c.nombre == quedada.lugar, orElse: () => Club(id: '0', nombre: '', direccion: '', ciudad: ''));
 
               return ListView.builder(

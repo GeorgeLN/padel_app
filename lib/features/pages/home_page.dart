@@ -90,12 +90,37 @@ class _HomePageState extends State<HomePage> {
                       _searchQuery = value;
                     });
                   },
-                  decoration: const InputDecoration(
-                    labelText: 'Buscar por nombre',
-                    prefixIcon: Icon(Icons.search),
+                  style: GoogleFonts.lato(
+                    color: AppColors.textBlack,
+                    fontSize: size.width * 0.04,
+                  ),
+                  cursorColor: AppColors.primaryBlack,
+
+                  decoration: InputDecoration(
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: AppColors.primaryBlack, width: 1),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: AppColors.primaryBlack, width: 1),
+                    ),
+                    hintText: 'Ingrese el nombre del club',
+                    hintStyle: GoogleFonts.lato(
+                      color: AppColors.textBlack.withValues(alpha: 0.5),
+                      fontSize: 16,
+                    ),
+                    labelText: 'Buscar nombre de club',
+                    labelStyle: GoogleFonts.lato(
+                      color: AppColors.textBlack,
+                      fontSize: 16,
+                    ),
+                    prefixIcon: Icon(Icons.search, color: AppColors.primaryBlack),
                   ),
                 ),
+
                 const SizedBox(height: 10),
+
                 StreamBuilder<QuerySnapshot>(
                   stream: FirebaseFirestore.instance.collection('clubes').snapshots(),
                   builder: (context, snapshot) {
@@ -103,25 +128,56 @@ class _HomePageState extends State<HomePage> {
                       return const SizedBox.shrink();
                     }
                     final cities = snapshot.data!.docs.map((doc) => doc['ciudad'] as String).toSet().toList();
-                    return DropdownButton<String>(
-                      value: _selectedCity,
-                      hint: const Text('Filtrar por ciudad'),
-                      isExpanded: true,
-                      items: [
-                        const DropdownMenuItem(
-                          value: null,
-                          child: Text('Todas las ciudades'),
+                    return Container(
+                      padding: EdgeInsets.all(size.width * 0.01),
+
+                      decoration: BoxDecoration(
+                        border: Border.all(color: AppColors.primaryBlack, width: 1),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+
+                      child: DropdownButton<String>(
+                        value: _selectedCity,
+                        dropdownColor: Colors.white,
+                        icon: const Icon(Icons.arrow_drop_down, color: AppColors.primaryBlack),
+
+                        style: GoogleFonts.lato(
+                          color: AppColors.textBlack,
+                          fontSize: size.width * 0.04,
                         ),
-                        ...cities.map((city) => DropdownMenuItem(
-                              value: city,
-                              child: Text(city),
-                            )),
-                      ],
-                      onChanged: (value) {
-                        setState(() {
-                          _selectedCity = value;
-                        });
-                      },
+
+                        underline: Container(
+                          height: 1,
+                          color: Colors.transparent,
+                        ),
+
+                        isExpanded: true,
+                        items: [
+                          DropdownMenuItem(
+                            value: null,
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Text(
+                                'Buscar ciudad...',
+                                style: GoogleFonts.lato(
+                                  color: AppColors.textBlack,
+                                  fontSize: size.width * 0.04,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ),
+                          ...cities.map((city) => DropdownMenuItem(
+                                value: city,
+                                child: Text(city),
+                              )),
+                        ],
+                        onChanged: (value) {
+                          setState(() {
+                            _selectedCity = value;
+                          });
+                        },
+                      ),
                     );
                   },
                 ),
@@ -149,59 +205,36 @@ class _HomePageState extends State<HomePage> {
                   clubes = clubes.where((club) => club.ciudad == _selectedCity).toList();
                 }
 
-                return ListView.builder(
-                  itemCount: clubes.length,
-                  itemBuilder: (context, index) {
-                    final club = clubes[index];
-                    return ListTile(
-                      title: Text(club.nombre),
-                      subtitle: Text('${club.direccion}, ${club.ciudad}'),
-                    );
-                  },
+                return Padding(
+                  padding: const EdgeInsets.all(9.0),
+                  child: ListView.builder(
+                    itemCount: clubes.length,
+                    itemBuilder: (context, index) {
+                      final club = clubes[index];
+                      return ListTile(
+                        title: Text(
+                          club.nombre,
+                          style: GoogleFonts.lato(
+                            color: AppColors.textBlack,
+                            fontSize: size.width * 0.045,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        subtitle: Text(
+                          '${club.ciudad} - ${club.direccion}',
+                          style: GoogleFonts.lato(
+                            color: AppColors.textBlack.withValues(alpha: 0.7),
+                            fontSize: size.width * 0.04,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
                 );
               },
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class SearchWhiteText extends StatelessWidget {
-  const SearchWhiteText({
-    super.key,
-    required this.size,
-  });
-
-  final Size size;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding( // Usar Padding en lugar de Container con margin
-      padding: EdgeInsets.symmetric(vertical: size.height * 0.02, horizontal: size.width * 0.05),
-      child: TextFormField(
-        style: GoogleFonts.lato(color: AppColors.textBlack, fontSize: size.width * 0.04),
-        decoration: InputDecoration(
-          prefixIcon: Icon(Icons.search, color: AppColors.textBlack.withValues(alpha: 0.7), size: size.width * 0.055),
-          filled: true,
-          fillColor: Colors.white,
-          hintText: 'Buscar torneos, jugadores...',
-          hintStyle: GoogleFonts.lato(color: AppColors.textBlack.withValues(alpha: 0.5), fontSize: size.width * 0.04),
-          contentPadding: EdgeInsets.symmetric(vertical: size.height * 0.018, horizontal: size.width * 0.04), // Ajustado
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: Colors.grey.shade300, width: 1),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: AppColors.primaryGreen, width: 1.5),
-          ),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: Colors.grey.shade300, width: 1),
-          ),
-        ),
       ),
     );
   }
