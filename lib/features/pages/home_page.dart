@@ -5,8 +5,6 @@ import 'package:provider/provider.dart';
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:padel_app/data/models/club_model.dart';
-import 'package:padel_app/features/widgets/club_card.dart';
-
 import '../../data/models/user_model.dart';
 import '../../data/viewmodels/auth_viewmodel.dart';
 
@@ -19,6 +17,8 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   Future<Usuario?>? _userDataFuture;
+  String _searchQuery = '';
+  String? _selectedCity;
 
   @override
   void initState() {
@@ -77,47 +77,58 @@ class _HomePageState extends State<HomePage> {
     }
 
     return SafeArea(
-      child: SingleChildScrollView(
-        child: Column(
-          children: [
-            PlayerAppBar(size: size, playerName: primerNombre, playerStatus: estado),
-            SearchWhiteText(size: size),
-            MajorTournaments(size: size),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class MajorTournaments extends StatelessWidget {
-  const MajorTournaments({
-    super.key,
-    required this.size,
-  });
-
-  final Size size;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: size.width, // Ocupar el ancho disponible
-      padding: EdgeInsets.symmetric(horizontal: size.width * 0.05), // Padding horizontal
-      margin: EdgeInsets.only(top: size.height * 0.02),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Clubes Disponibles',
-            style: GoogleFonts.lato(
-              fontSize: size.width * 0.05,
-              color: AppColors.textBlack,
-              fontWeight: FontWeight.bold,
+          PlayerAppBar(size: size, playerName: primerNombre, playerStatus: estado),
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: size.width * 0.05),
+            child: Column(
+              children: [
+                TextField(
+                  onChanged: (value) {
+                    setState(() {
+                      _searchQuery = value;
+                    });
+                  },
+                  decoration: const InputDecoration(
+                    labelText: 'Buscar por nombre',
+                    prefixIcon: Icon(Icons.search),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                StreamBuilder<QuerySnapshot>(
+                  stream: FirebaseFirestore.instance.collection('clubes').snapshots(),
+                  builder: (context, snapshot) {
+                    if (!snapshot.hasData) {
+                      return const SizedBox.shrink();
+                    }
+                    final cities = snapshot.data!.docs.map((doc) => doc['ciudad'] as String).toSet().toList();
+                    return DropdownButton<String>(
+                      value: _selectedCity,
+                      hint: const Text('Filtrar por ciudad'),
+                      isExpanded: true,
+                      items: [
+                        const DropdownMenuItem(
+                          value: null,
+                          child: Text('Todas las ciudades'),
+                        ),
+                        ...cities.map((city) => DropdownMenuItem(
+                              value: city,
+                              child: Text(city),
+                            )),
+                      ],
+                      onChanged: (value) {
+                        setState(() {
+                          _selectedCity = value;
+                        });
+                      },
+                    );
+                  },
+                ),
+              ],
             ),
           ),
-          SizedBox(height: size.height * 0.015),
-          SizedBox(
-            height: size.height * 0.25,
+          Expanded(
             child: StreamBuilder<QuerySnapshot>(
               stream: FirebaseFirestore.instance.collection('clubes').snapshots(),
               builder: (context, snapshot) {
@@ -128,16 +139,23 @@ class MajorTournaments extends StatelessWidget {
                   return const Center(child: Text('No hay clubes disponibles.'));
                 }
 
-                final clubes = snapshot.data!.docs.map((doc) => Club.fromFirestore(doc)).toList();
+                var clubes = snapshot.data!.docs.map((doc) => Club.fromFirestore(doc)).toList();
+
+                if (_searchQuery.isNotEmpty) {
+                  clubes = clubes.where((club) => club.nombre.toLowerCase().contains(_searchQuery.toLowerCase())).toList();
+                }
+
+                if (_selectedCity != null) {
+                  clubes = clubes.where((club) => club.ciudad == _selectedCity).toList();
+                }
 
                 return ListView.builder(
-                  scrollDirection: Axis.horizontal,
-                  physics: const BouncingScrollPhysics(),
                   itemCount: clubes.length,
                   itemBuilder: (context, index) {
-                    return Padding(
-                      padding: EdgeInsets.only(right: size.width * 0.04),
-                      child: ClubCard(size: size, club: clubes[index]),
+                    final club = clubes[index];
+                    return ListTile(
+                      title: Text(club.nombre),
+                      subtitle: Text('${club.direccion}, ${club.ciudad}'),
                     );
                   },
                 );
