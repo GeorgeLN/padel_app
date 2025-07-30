@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
-import 'package:padel_app/data/models/cancha_model.dart';
+import 'package:padel_app/data/models/club_model.dart';
 import 'package:padel_app/data/models/quedada_model.dart';
 import 'package:padel_app/features/design/app_colors.dart';
 import 'package:padel_app/features/pages/booking_page.dart';
@@ -63,7 +63,7 @@ class _RoomPageState extends State<RoomPage> {
             return const Center(child: Text('Cancha no encontrada.'));
           }
 
-          final cancha = Cancha.fromFirestore(canchaSnapshot.data!);
+          final cancha = Club.fromFirestore(canchaSnapshot.data!);
           final formattedDate = DateFormat('dd/MM/yyyy').format(_selectedDate);
 
           return Column(

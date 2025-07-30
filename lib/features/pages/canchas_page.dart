@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:padel_app/data/models/quedada_model.dart';
-import 'package:padel_app/data/models/cancha_model.dart';
+import 'package:padel_app/data/models/club_model.dart';
 import 'package:padel_app/features/pages/detalles_partido_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:padel_app/features/design/app_colors.dart';
@@ -41,13 +41,12 @@ class CanchasPage extends StatelessWidget {
                 return const Center(child: Text('No hay canchas disponibles.'));
               }
 
-              final canchas = canchaSnapshot.data!.docs
-                  .map((doc) => Cancha.fromFirestore(doc))
+              final clubes = canchaSnapshot.data!.docs
+                  .map((doc) => Club.fromFirestore(doc))
                   .toList();
-              final cancha = canchas.firstWhere((c) => c.nombre == quedada.lugar, orElse: () => Cancha(id: '', nombre: '', direccion: '', cantidad: 0, disponibles: 0));
+              final cancha = clubes.firstWhere((c) => c.nombre == quedada.lugar, orElse: () => Club(id: '0', nombre: '', direccion: '', ciudad: ''));
 
               return ListView.builder(
-                itemCount: cancha.cantidad,
                 itemBuilder: (context, index) {
                   return CanchaCard(
                     canchaIndex: index,
