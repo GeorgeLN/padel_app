@@ -313,7 +313,7 @@ class BlurContainer extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  _buildStatItem(context, Icons.local_fire_department, 'Ranking', '${usuario.ranking}', size),
+                  _buildStatItem(context, Icons.local_fire_department, 'Ranking', '0', size),
                   _buildStatItem(context, Icons.timer_outlined, 'Asistencia', '${usuario.asistencias}', size),
                 ],
               ),

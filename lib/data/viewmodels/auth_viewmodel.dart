@@ -52,8 +52,6 @@ class AuthViewModel extends ChangeNotifier {
           efectividad: 0.0,
           penalizaciones: 0,
           puntos: 0,
-          puntos_pos: 0,
-          ranking: 0,
           subcategoria: 0,
         );
 

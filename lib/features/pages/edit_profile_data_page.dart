@@ -81,8 +81,6 @@ class _EditProfileDataPageState extends State<EditProfileDataPage> {
         _efectividadController.text = _usuario!.efectividad.toString().replaceAll('.', ',');
         _penalizacionesController.text = _usuario!.penalizaciones.toString();
         _puntosController.text = _usuario!.puntos.toString();
-        _puntosPosController.text = _usuario!.puntos_pos.toString();
-        _rankingController.text = _usuario!.ranking.toString();
         _subcategoriaController.text = _usuario!.subcategoria.toString();
       } else {
         // Manejar el caso donde el usuario no se encuentra
@@ -114,8 +112,6 @@ class _EditProfileDataPageState extends State<EditProfileDataPage> {
     _efectividadController.dispose();
     _penalizacionesController.dispose();
     _puntosController.dispose();
-    _puntosPosController.dispose();
-    _rankingController.dispose();
     _subcategoriaController.dispose();
     super.dispose();
   }
@@ -136,8 +132,6 @@ class _EditProfileDataPageState extends State<EditProfileDataPage> {
         efectividad: efectividadValue,
         penalizaciones: int.tryParse(_penalizacionesController.text) ?? _usuario!.penalizaciones,
         puntos: int.tryParse(_puntosController.text) ?? _usuario!.puntos,
-        puntos_pos: int.tryParse(_puntosPosController.text) ?? _usuario!.puntos_pos,
-        ranking: int.tryParse(_rankingController.text) ?? _usuario!.ranking,
         subcategoria: int.tryParse(_subcategoriaController.text) ?? _usuario!.subcategoria,
       );
 
@@ -232,22 +226,6 @@ class _EditProfileDataPageState extends State<EditProfileDataPage> {
                         _buildTextFormField(
                           controller: _puntosController,
                           labelText: 'Puntos',
-                          validatorText: 'Ingresa un número válido.',
-                          keyboardType: TextInputType.number,
-                          size: size,
-                        ),
-                        SizedBox(height: size.height * 0.025),
-                        _buildTextFormField(
-                          controller: _puntosPosController,
-                          labelText: 'Puntos de Posición',
-                          validatorText: 'Ingresa un número válido.',
-                          keyboardType: TextInputType.number,
-                          size: size,
-                        ),
-                        SizedBox(height: size.height * 0.025),
-                        _buildTextFormField(
-                          controller: _rankingController,
-                          labelText: 'Ranking',
                           validatorText: 'Ingresa un número válido.',
                           keyboardType: TextInputType.number,
                           size: size,

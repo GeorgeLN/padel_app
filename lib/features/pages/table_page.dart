@@ -126,7 +126,6 @@ class _TablePageState extends State<TablePage> {
                 final List<Map<String, dynamic>> datosParaTabla = usuarios.map((user) {
                   return {
                     'TEAM': user.nombre,
-                    'PTS POS': user.puntos_pos,
                     '%': '${user.efectividad.toStringAsFixed(1)}%',
                     'ASIST': user.asistencias,
                     'PTS': user.puntos,
@@ -365,7 +364,6 @@ class TablaDatosJugador extends StatelessWidget {
             ),
             columns: <DataColumn>[
               DataColumn(label: Text('TEAM', style: headerTextStyle)),
-              DataColumn(label: Text('PTS POS', style: headerTextStyle)),
               DataColumn(label: Text('EFEC', style: headerTextStyle)),
               DataColumn(label: Text('ASIST', style: headerTextStyle)),
               DataColumn(label: Text('PTS', style: headerTextStyle)),
@@ -381,7 +379,6 @@ class TablaDatosJugador extends StatelessWidget {
               return DataRow(
                 cells: <DataCell>[
                   DataCell(Text(fila['TEAM'].toString(), style: cellTextStyle)),
-                  DataCell(Text(fila['PTS POS'].toString(), style: cellTextStyle)),
                   DataCell(Text(fila['%'].toString(), style: cellTextStyle)),
                   DataCell(Text(fila['ASIST'].toString(), style: cellTextStyle)),
                   DataCell(Text(fila['PTS'].toString(), style: cellTextStyle)),
