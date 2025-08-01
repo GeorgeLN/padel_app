@@ -73,7 +73,6 @@ class _HomePageState extends State<HomePage> {
     String? estado;
     if (usuario != null && usuario.nombre.isNotEmpty) {
       primerNombre = usuario.nombre.split(' ').first;
-      estado = usuario.estado;
     }
 
     return SafeArea(

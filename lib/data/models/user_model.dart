@@ -9,7 +9,6 @@ class Usuario {
   final int penalizaciones;
   final int puntos;
   final int subcategoria; // Podría ser String si representa un nombre, pero se inicializa en 0
-  final String estado;
 
   Usuario({
     required this.uid,
@@ -22,7 +21,6 @@ class Usuario {
     this.penalizaciones = 0,
     this.puntos = 0,
     this.subcategoria = 0, // Asumiendo que 0 es un valor inicial válido
-    this.estado = 'disponible',
   });
 
   // Método para convertir un objeto Usuario a un Map (para Firestore)
@@ -38,7 +36,6 @@ class Usuario {
       'penalizaciones': penalizaciones,
       'puntos': puntos,
       'subcategoria': subcategoria,
-      'estado': estado,
     };
   }
 
@@ -55,7 +52,6 @@ class Usuario {
       penalizaciones: json['penalizaciones'] as int? ?? 0,
       puntos: json['puntos'] as int? ?? 0,
       subcategoria: json['subcategoria'] as int? ?? 0,
-      estado: json['estado'] as String? ?? 'disponible',
     );
   }
 
@@ -71,7 +67,6 @@ class Usuario {
     int? penalizaciones,
     int? puntos,
     int? subcategoria,
-    String? estado,
   }) {
     return Usuario(
       uid: uid ?? this.uid,
@@ -84,7 +79,6 @@ class Usuario {
       penalizaciones: penalizaciones ?? this.penalizaciones,
       puntos: puntos ?? this.puntos,
       subcategoria: subcategoria ?? this.subcategoria,
-      estado: estado ?? this.estado,
     );
   }
 }
