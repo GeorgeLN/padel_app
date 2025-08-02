@@ -1,8 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:padel_app/data/models/jugador_stats.dart';
 import 'package:padel_app/features/design/app_colors.dart';
+
+import '../../data/jugador_stats.dart';
 
 class EditProfileDataPage extends StatefulWidget {
   final String userId;

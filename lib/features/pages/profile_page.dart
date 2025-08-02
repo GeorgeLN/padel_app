@@ -37,7 +37,7 @@ class _ProfilePageState extends State<ProfilePage> {
     final size = MediaQuery.of(context).size;
     final authViewModel = Provider.of<AuthViewModel>(context, listen: false);
 
-    if (_userDataFuture == null) {
+    if (_profileDataFuture == null) {
       return Scaffold(
         backgroundColor: AppColors.primaryBlue,
         appBar: AppBar(

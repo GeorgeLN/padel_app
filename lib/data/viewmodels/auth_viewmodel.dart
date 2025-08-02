@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:padel_app/data/models/jugador_stats.dart';
+//import 'package:padel_app/data/models/jugador_stats.dart';
 import 'package:padel_app/data/models/unified_stats_model.dart';
 import 'package:padel_app/data/models/user_model.dart';
+
+import '../jugador_stats.dart';
 
 // Helper class to hold combined profile data, accessible to the UI
 class ProfileData {
