@@ -100,7 +100,8 @@ class _RankingTableState extends State<RankingTable> {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
-    final authViewModel = Provider.of<AuthViewModel>(context, listen: false);
+    // Escuchar cambios en AuthViewModel para reconstruir si el usuario cambia
+    final authViewModel = Provider.of<AuthViewModel>(context);
 
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
