@@ -1,15 +1,21 @@
 // ignore_for_file: prefer_final_fields
 
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:padel_app/data/models/rank_ciudades_model.dart';
+import 'package:padel_app/data/models/rank_clubes_model.dart';
+import 'package:padel_app/data/models/rank_whatsapp_model.dart';
+import 'package:padel_app/data/models/unified_stats_model.dart';
+import 'package:padel_app/data/jugador_stats.dart';
 import 'package:padel_app/features/design/app_colors.dart';
 import 'package:google_fonts/google_fonts.dart';
-// import 'package:padel_app/features/widgets/add_data_form.dart'; // Comentado ya que su funcionalidad cambia
-import 'package:padel_app/data/models/user_model.dart'; // Importar el modelo Usuario
-import 'package:padel_app/data/viewmodels/auth_viewmodel.dart'; // Para el botón de cerrar sesión
+import 'package:padel_app/data/models/user_model.dart';
+import 'package:padel_app/data/viewmodels/auth_viewmodel.dart';
 import 'package:provider/provider.dart';
 
-import 'edit_profile_data_page.dart'; // Para acceder al AuthViewModel
+import 'edit_profile_data_page.dart';
 
 class TablePage extends StatefulWidget {
   const TablePage({super.key});
@@ -18,37 +24,197 @@ class TablePage extends StatefulWidget {
   State<TablePage> createState() => _TablePageState();
 }
 
-class _TablePageState extends State<TablePage> {
-  Stream<List<QuerySnapshot>> _getUsersStream(String? currentUserId) {
-    final firestore = FirebaseFirestore.instance;
-    Stream<QuerySnapshot> loggedInUserStream;
-    Stream<QuerySnapshot> otherUsersStream;
+class RankingTable extends StatefulWidget {
+  final String title;
+  final String collectionName;
+  final String mapKey;
+  final IconData icon;
 
-    if (currentUserId != null) {
-      loggedInUserStream = firestore
-          .collection('usuarios')
-          .where(FieldPath.documentId, isEqualTo: currentUserId)
-          .snapshots();
-      otherUsersStream = firestore
-          .collection('usuarios')
-          .where(FieldPath.documentId, isNotEqualTo: currentUserId)
-          .orderBy('puntos', descending: true)
-          .snapshots();
-    } else {
-      // Si no hay usuario logueado, devuelve todos ordenados por puntos
-      loggedInUserStream = Stream.value(EmptyQuerySnapshot());
-      otherUsersStream = firestore
-          .collection('usuarios')
-          .orderBy('puntos', descending: true)
-          .snapshots();
-    }
+  const RankingTable({
+    super.key,
+    required this.title,
+    required this.collectionName,
+    required this.mapKey,
+    required this.icon,
+  });
 
-    return loggedInUserStream.asyncMap((loggedInUserSnap) async {
-      final otherUsersSnap = await otherUsersStream.first; // Espera el primer evento de los otros usuarios
-      return [loggedInUserSnap, otherUsersSnap];
+  @override
+  State<RankingTable> createState() => _RankingTableState();
+}
+
+class _RankingTableState extends State<RankingTable> {
+  late Stream<List<JugadorStats>> _rankStatsStream;
+
+  @override
+  void initState() {
+    super.initState();
+    _rankStatsStream = _getRankStatsStream();
+  }
+
+  Stream<List<JugadorStats>> _getRankStatsStream() {
+    return FirebaseFirestore.instance
+        .collection(widget.collectionName)
+        .snapshots()
+        .map((snapshot) {
+      if (snapshot.docs.isEmpty) {
+        return <JugadorStats>[];
+      }
+
+      List<JugadorStats> allStats = [];
+      for (var doc in snapshot.docs) {
+        final data = doc.data();
+        final statsMap = data[widget.mapKey] as Map<String, dynamic>? ?? {};
+
+        statsMap.forEach((uid, statsData) {
+          // Asegurarse de que el UID se incluye en el objeto JugadorStats
+          var statsWithUid = Map<String, dynamic>.from(statsData);
+          if (statsWithUid['uid'] == null || statsWithUid['uid'] == '') {
+            statsWithUid['uid'] = uid;
+          }
+          allStats.add(JugadorStats.fromJson(statsWithUid));
+        });
+      }
+
+      allStats.sort((a, b) => b.puntos.compareTo(a.puntos));
+      return allStats;
     });
   }
 
+  @override
+  Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+    final authViewModel = Provider.of<AuthViewModel>(context, listen: false);
+
+    return Column(
+      children: [
+        DropButton(
+          size: size,
+          name: widget.title,
+          icon: widget.icon,
+        ),
+        StreamBuilder<List<JugadorStats>>(
+          stream: _rankStatsStream,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator(color: AppColors.primaryGreen));
+            }
+            if (snapshot.hasError) {
+              return Center(child: Text('Error: ${snapshot.error}', style: GoogleFonts.lato(color: AppColors.textWhite)));
+            }
+            if (!snapshot.hasData || snapshot.data!.isEmpty) {
+              return Center(child: Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Text('No hay datos en este ranking.', style: GoogleFonts.lato(color: AppColors.textWhite)),
+              ));
+            }
+
+            final List<JugadorStats> statsList = snapshot.data!;
+            final List<Map<String, dynamic>> tableData = statsList.map((stats) {
+              return {
+                'TEAM': stats.nombre,
+                '%': '${stats.efectividad}%',
+                'ASIST': stats.asistencias,
+                'PTS': stats.puntos,
+                'SUB CTG': stats.subcategoria,
+                'BON': stats.bonificaciones,
+                'PEN': stats.penalizacion,
+                'id': stats.uid,
+                'isCurrentUser': authViewModel.currentUser?.uid == stats.uid,
+              };
+            }).toList();
+
+            return TablaDatosJugador(datos: tableData);
+          },
+        ),
+      ],
+    );
+  }
+}
+
+class _TablePageState extends State<TablePage> {
+  late Future<List<UnifiedStats>> _bestStatsFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _bestStatsFuture = _getBestStatsForAllUsers();
+  }
+
+  Future<List<UnifiedStats>> _getBestStatsForAllUsers() async {
+    final firestore = FirebaseFirestore.instance;
+    final authViewModel = Provider.of<AuthViewModel>(context, listen: false);
+    final currentUserId = authViewModel.currentUser?.uid;
+
+    // 1. Fetch all data concurrently
+    final results = await Future.wait([
+      firestore.collection('usuarios').get(),
+      firestore.collection('rank_clubes').get(),
+      firestore.collection('rank_ciudades').get(),
+      firestore.collection('rank_whatsapp').get(),
+    ]);
+
+    final usersSnapshot = results[0] as QuerySnapshot<Map<String, dynamic>>;
+    final clubesSnapshot = results[1] as QuerySnapshot<Map<String, dynamic>>;
+    final ciudadesSnapshot = results[2] as QuerySnapshot<Map<String, dynamic>>;
+    final whatsappSnapshot = results[3] as QuerySnapshot<Map<String, dynamic>>;
+
+    // 2. Process data to find best stats
+    Map<String, UnifiedStats> bestStatsMap = {};
+
+    // Process 'usuarios' collection (base stats)
+    for (var doc in usersSnapshot.docs) {
+      var data = doc.data();
+      if (data['uid'] == null) {
+        data['uid'] = doc.id;
+      }
+      final usuario = Usuario.fromJson(data);
+      bestStatsMap[usuario.uid] = UnifiedStats.fromUsuario(usuario);
+    }
+
+    // Helper function to process rank collections
+    void processRankCollection(
+        QuerySnapshot<Map<String, dynamic>> snapshot, String sourceName, String mapKey) {
+      for (var doc in snapshot.docs) {
+        final rankData = doc.data();
+        final statsMap = rankData[mapKey] as Map<String, dynamic>? ?? {};
+
+        statsMap.forEach((uid, statsData) {
+          final stats = JugadorStats.fromJson(statsData as Map<String, dynamic>);
+          final unified = UnifiedStats.fromJugadorStats(stats, sourceName);
+
+          if (bestStatsMap.containsKey(uid)) {
+            if (unified.puntos > bestStatsMap[uid]!.puntos) {
+              bestStatsMap[uid] = unified; // Update if new score is better
+            }
+          } else {
+            bestStatsMap[uid] = unified; // Add if user not seen before
+          }
+        });
+      }
+    }
+
+    // Process each rank collection
+    processRankCollection(clubesSnapshot, 'Clubes', 'jugadores');
+    processRankCollection(ciudadesSnapshot, 'Ciudades', 'jugadores');
+    processRankCollection(whatsappSnapshot, 'Whatsapp', 'integrantes');
+
+    // 3. Sort the results
+    List<UnifiedStats> finalStatsList = bestStatsMap.values.toList();
+
+    // Sort by points descending
+    finalStatsList.sort((a, b) => b.puntos.compareTo(a.puntos));
+
+    // Move the current user to the top of the list if they exist
+    if (currentUserId != null) {
+      final currentUserIndex = finalStatsList.indexWhere((stats) => stats.uid == currentUserId);
+      if (currentUserIndex != -1) {
+        final currentUserStats = finalStatsList.removeAt(currentUserIndex);
+        finalStatsList.insert(0, currentUserStats);
+      }
+    }
+
+    return finalStatsList;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -57,84 +223,62 @@ class _TablePageState extends State<TablePage> {
 
     return Scaffold(
       backgroundColor: AppColors.primaryBlack,
-      appBar: AppBar( // AppBar agregada para el título y botón de logout
-        title: Text('Ranking de Jugadores', style: GoogleFonts.lato(color: AppColors.textWhite)),
+      appBar: AppBar(
+        title: Text('Ranking de Jugadores',
+            style: GoogleFonts.lato(color: AppColors.textWhite)),
         centerTitle: true,
         backgroundColor: AppColors.secondBlack,
-        leading: Icon(Icons.abc_rounded, color: Colors.transparent),
+        leading: const Icon(Icons.abc_rounded, color: Colors.transparent),
       ),
       body: SingleChildScrollView(
         scrollDirection: Axis.vertical,
         child: Column(
           children: [
-            SearchText(size: size), // Se mantiene si es para filtrar la tabla visualmente
-            RankingButton(size: size), // Se mantiene
+            SearchText(size: size),
+            RankingButton(size: size),
             DropButton(
               size: size,
               name: 'General',
               icon: Icons.stadium,
             ),
 
-            // StreamBuilder para cargar datos de Firestore
-            StreamBuilder<List<QuerySnapshot>>( // Cambiado a List<QuerySnapshot>
-              stream: _getUsersStream(authViewModel.currentUser?.uid), // Usar la nueva función de stream
+            // FutureBuilder to display the best stats table
+            FutureBuilder<List<UnifiedStats>>(
+              future: _bestStatsFuture,
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator(color: AppColors.primaryGreen));
+                  return const Center(
+                      child: CircularProgressIndicator(
+                          color: AppColors.primaryGreen));
                 }
                 if (snapshot.hasError) {
-                  return Center(child: Text('Error al cargar datos: ${snapshot.error}', style: GoogleFonts.lato(color: AppColors.textWhite)));
+                  return Center(
+                      child: Text('Error al cargar datos: ${snapshot.error}',
+                          style:
+                              GoogleFonts.lato(color: AppColors.textWhite)));
                 }
-                // Comprobar si hay datos y si las listas internas no son nulas.
-                if (!snapshot.hasData || snapshot.data == null || snapshot.data!.length < 2) {
-                    return Center(child: Text('Cargando datos de jugadores...', style: GoogleFonts.lato(color: AppColors.textWhite)));
-                }
-
-                final List<Usuario> usuarios = [];
-                final loggedInUserSnapshot = snapshot.data![0];
-                final otherUsersSnapshot = snapshot.data![1];
-
-                // Procesar usuario logueado primero
-                if (loggedInUserSnapshot.docs.isNotEmpty) {
-                  final loggedInUserDoc = loggedInUserSnapshot.docs.first;
-                  // Asegurarse de que el ID se está pasando correctamente al modelo Usuario
-                  var data = loggedInUserDoc.data() as Map<String, dynamic>;
-                  if (data['uid'] == null) {
-                    data['uid'] = loggedInUserDoc.id;
-                  }
-                  usuarios.add(Usuario.fromJson(data));
+                if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                  return Center(
+                      child: Text('No hay jugadores registrados.',
+                          style:
+                              GoogleFonts.lato(color: AppColors.textWhite)));
                 }
 
-                // Procesar otros usuarios
-                for (var doc in otherUsersSnapshot.docs) {
-                   // Asegurarse de que el ID se está pasando correctamente al modelo Usuario
-                  var data = doc.data() as Map<String, dynamic>;
-                  if (data['uid'] == null) {
-                    data['uid'] = doc.id;
-                  }
-                  // Evitar duplicados si el usuario logueado también aparece aquí (aunque no debería por la consulta)
-                  if (authViewModel.currentUser?.uid == null || doc.id != authViewModel.currentUser!.uid) {
-                    usuarios.add(Usuario.fromJson(data));
-                  }
-                }
+                final List<UnifiedStats> bestStats = snapshot.data!;
 
-                if (usuarios.isEmpty) {
-                  return Center(child: Text('No hay jugadores registrados.', style: GoogleFonts.lato(color: AppColors.textWhite)));
-                }
-
-                // Mapear List<Usuario> al formato que espera TablaDatosJugador
-                final List<Map<String, dynamic>> datosParaTabla = usuarios.map((user) {
+                // Mapear List<UnifiedStats> al formato que espera TablaDatosJugador
+                final List<Map<String, dynamic>> datosParaTabla =
+                    bestStats.map((stats) {
                   return {
-                    'TEAM': user.nombre,
-                    '%': '${user.efectividad.toStringAsFixed(1)}%',
-                    'ASIST': user.asistencias,
-                    'PTS': user.puntos,
-                    'SUB CTG': user.subcategoria,
-                    'BON': user.bonificaciones,
-                    'PEN': user.penalizaciones,
-                    // Campos necesarios para la lógica de edición
-                    'id': user.uid, // Usar user.uid que debe estar asignado
-                    'isCurrentUser': authViewModel.currentUser?.uid == user.uid,
+                    'TEAM': stats.nombre,
+                    '%': '${stats.efectividad.toStringAsFixed(1)}%',
+                    'ASIST': stats.asistencias,
+                    'PTS': stats.puntos,
+                    'SUB CTG': stats.subcategoria,
+                    'BON': stats.bonificaciones,
+                    'PEN': stats.penalizaciones,
+                    'id': stats.uid,
+                    'isCurrentUser': authViewModel.currentUser?.uid == stats.uid,
                   };
                 }).toList();
 
@@ -142,43 +286,40 @@ class _TablePageState extends State<TablePage> {
               },
             ),
 
-            DropButton(
-              size: size,
-              name: 'Mensual',
-              icon: Icons.numbers,
+            const SizedBox(height: 20), // Espaciador
+
+            // Tabla para Ranking de Clubes
+            RankingTable(
+              title: 'Ranking de Clubes',
+              collectionName: 'rank_clubes',
+              mapKey: 'jugadores',
+              icon: Icons.shield,
+            ),
+
+            // Tabla para Ranking de Ciudades
+            RankingTable(
+              title: 'Ranking de Ciudades',
+              collectionName: 'rank_ciudades',
+              mapKey: 'jugadores',
+              icon: Icons.location_city,
+            ),
+
+            // Tabla para Ranking de WhatsApp
+            RankingTable(
+              title: 'Ranking de WhatsApp',
+              collectionName: 'rank_whatsapp',
+              mapKey: 'integrantes',
+              icon: Icons.chat,
             ),
           ],
         ),
       ),
-      // FloatingActionButton ahora podría tener otro propósito o ser eliminado
-      // si la adición de usuarios es solo mediante el registro.
-      // floatingActionButton: FloatingActionButton(
-      //   onPressed: () {
-      //     // _showAddDataForm(context); // Su funcionalidad original cambió
-      //   },
-      //   backgroundColor: AppColors.primaryGreen,
-      //   child: const Icon(Icons.add, color: AppColors.textBlack),
-      // ),
     );
   }
 }
 
-// Clase auxiliar para el caso de Stream vacío
-class EmptyQuerySnapshot implements QuerySnapshot {
-  @override
-  List<DocumentChange> get docChanges => [];
-
-  @override
-  List<QueryDocumentSnapshot> get docs => [];
-
-  @override
-  SnapshotMetadata get metadata => throw UnimplementedError('metadata_unimplemented'); // Proporcionar un mensaje
-
-  @override
-  int get size => 0;
-}
-
-
+// ... (El resto de los widgets como SearchText, DropButton, RankingButton, TablaDatosJugador y EmptyQuerySnapshot se mantienen igual)
+// Se elimina EmptyQuerySnapshot ya que no se usa con FutureBuilder
 class SearchText extends StatelessWidget {
   const SearchText({
     super.key,
