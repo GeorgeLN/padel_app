@@ -4,9 +4,6 @@ import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:padel_app/data/models/rank_ciudades_model.dart';
-import 'package:padel_app/data/models/rank_clubes_model.dart';
-import 'package:padel_app/data/models/rank_whatsapp_model.dart';
 import 'package:padel_app/data/models/unified_stats_model.dart';
 import 'package:padel_app/data/jugador_stats.dart';
 import 'package:padel_app/features/design/app_colors.dart';
@@ -86,6 +83,7 @@ class _RankingTableState extends State<RankingTable> {
     final authViewModel = Provider.of<AuthViewModel>(context, listen: false);
 
     return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
         DropButton(
           size: size,
@@ -111,7 +109,7 @@ class _RankingTableState extends State<RankingTable> {
             final List<JugadorStats> statsList = snapshot.data!;
             final List<Map<String, dynamic>> tableData = statsList.map((stats) {
               return {
-                'TEAM': stats.nombre,
+                'JUGADOR': stats.nombre,
                 '%': '${stats.efectividad}%',
                 'ASIST': stats.asistencias,
                 'PTS': stats.puntos,
@@ -270,7 +268,7 @@ class _TablePageState extends State<TablePage> {
                 final List<Map<String, dynamic>> datosParaTabla =
                     bestStats.map((stats) {
                   return {
-                    'TEAM': stats.nombre,
+                    'JUGADOR': stats.nombre,
                     '%': '${stats.efectividad.toStringAsFixed(1)}%',
                     'ASIST': stats.asistencias,
                     'PTS': stats.puntos,
@@ -286,11 +284,11 @@ class _TablePageState extends State<TablePage> {
               },
             ),
 
-            const SizedBox(height: 20), // Espaciador
+            const SizedBox(height: 10), // Espaciador
 
             // Tabla para Ranking de Clubes
             RankingTable(
-              title: 'Ranking de Clubes',
+              title: 'Clubes',
               collectionName: 'rank_clubes',
               mapKey: 'jugadores',
               icon: Icons.shield,
@@ -298,7 +296,7 @@ class _TablePageState extends State<TablePage> {
 
             // Tabla para Ranking de Ciudades
             RankingTable(
-              title: 'Ranking de Ciudades',
+              title: 'Ciudades',
               collectionName: 'rank_ciudades',
               mapKey: 'jugadores',
               icon: Icons.location_city,
@@ -306,7 +304,7 @@ class _TablePageState extends State<TablePage> {
 
             // Tabla para Ranking de WhatsApp
             RankingTable(
-              title: 'Ranking de WhatsApp',
+              title: 'WhatsApp',
               collectionName: 'rank_whatsapp',
               mapKey: 'integrantes',
               icon: Icons.chat,
@@ -375,8 +373,9 @@ class DropButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: size.width * 0.9,
-      height: size.height * 0.08,
+      height: size.height * 0.1,
       margin: EdgeInsets.only(bottom: size.height * 0.02),
+
       
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -504,7 +503,7 @@ class TablaDatosJugador extends StatelessWidget {
               },
             ),
             columns: <DataColumn>[
-              DataColumn(label: Text('TEAM', style: headerTextStyle)),
+              DataColumn(label: Text('JUGADOR', style: headerTextStyle)),
               DataColumn(label: Text('EFEC', style: headerTextStyle)),
               DataColumn(label: Text('ASIST', style: headerTextStyle)),
               DataColumn(label: Text('PTS', style: headerTextStyle)),
@@ -519,7 +518,7 @@ class TablaDatosJugador extends StatelessWidget {
 
               return DataRow(
                 cells: <DataCell>[
-                  DataCell(Text(fila['TEAM'].toString(), style: cellTextStyle)),
+                  DataCell(Text(fila['JUGADOR'].toString(), style: cellTextStyle)),
                   DataCell(Text(fila['%'].toString(), style: cellTextStyle)),
                   DataCell(Text(fila['ASIST'].toString(), style: cellTextStyle)),
                   DataCell(Text(fila['PTS'].toString(), style: cellTextStyle)),
