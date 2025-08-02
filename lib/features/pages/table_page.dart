@@ -14,6 +14,21 @@ import 'package:provider/provider.dart';
 
 import 'edit_profile_data_page.dart';
 
+// Helper class to hold stats with their origin context
+class JugadorStatsConContexto {
+  final JugadorStats stats;
+  final String docId;
+  final String collectionName;
+  final String mapKey;
+
+  JugadorStatsConContexto({
+    required this.stats,
+    required this.docId,
+    required this.collectionName,
+    required this.mapKey,
+  });
+}
+
 class TablePage extends StatefulWidget {
   const TablePage({super.key});
 
@@ -40,7 +55,7 @@ class RankingTable extends StatefulWidget {
 }
 
 class _RankingTableState extends State<RankingTable> {
-  late Stream<List<JugadorStats>> _rankStatsStream;
+  late Stream<List<JugadorStatsConContexto>> _rankStatsStream;
 
   @override
   void initState() {
@@ -48,31 +63,36 @@ class _RankingTableState extends State<RankingTable> {
     _rankStatsStream = _getRankStatsStream();
   }
 
-  Stream<List<JugadorStats>> _getRankStatsStream() {
+  Stream<List<JugadorStatsConContexto>> _getRankStatsStream() {
     return FirebaseFirestore.instance
         .collection(widget.collectionName)
         .snapshots()
         .map((snapshot) {
       if (snapshot.docs.isEmpty) {
-        return <JugadorStats>[];
+        return <JugadorStatsConContexto>[];
       }
 
-      List<JugadorStats> allStats = [];
+      List<JugadorStatsConContexto> allStats = [];
       for (var doc in snapshot.docs) {
         final data = doc.data();
         final statsMap = data[widget.mapKey] as Map<String, dynamic>? ?? {};
 
         statsMap.forEach((uid, statsData) {
-          // Asegurarse de que el UID se incluye en el objeto JugadorStats
           var statsWithUid = Map<String, dynamic>.from(statsData);
           if (statsWithUid['uid'] == null || statsWithUid['uid'] == '') {
             statsWithUid['uid'] = uid;
           }
-          allStats.add(JugadorStats.fromJson(statsWithUid));
+          final stats = JugadorStats.fromJson(statsWithUid);
+          allStats.add(JugadorStatsConContexto(
+            stats: stats,
+            docId: doc.id,
+            collectionName: widget.collectionName,
+            mapKey: widget.mapKey,
+          ));
         });
       }
 
-      allStats.sort((a, b) => b.puntos.compareTo(a.puntos));
+      allStats.sort((a, b) => b.stats.puntos.compareTo(a.stats.puntos));
       return allStats;
     });
   }
@@ -90,7 +110,7 @@ class _RankingTableState extends State<RankingTable> {
           name: widget.title,
           icon: widget.icon,
         ),
-        StreamBuilder<List<JugadorStats>>(
+        StreamBuilder<List<JugadorStatsConContexto>>(
           stream: _rankStatsStream,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
@@ -106,8 +126,9 @@ class _RankingTableState extends State<RankingTable> {
               ));
             }
 
-            final List<JugadorStats> statsList = snapshot.data!;
-            final List<Map<String, dynamic>> tableData = statsList.map((stats) {
+            final List<JugadorStatsConContexto> statsList = snapshot.data!;
+            final List<Map<String, dynamic>> tableData = statsList.map((statsConContexto) {
+              final stats = statsConContexto.stats;
               return {
                 'JUGADOR': stats.nombre,
                 '%': '${stats.efectividad}%',
@@ -118,6 +139,9 @@ class _RankingTableState extends State<RankingTable> {
                 'PEN': stats.penalizacion,
                 'id': stats.uid,
                 'isCurrentUser': authViewModel.currentUser?.uid == stats.uid,
+                'docId': statsConContexto.docId,
+                'collectionName': statsConContexto.collectionName,
+                'mapKey': statsConContexto.mapKey,
               };
             }).toList();
 
@@ -143,7 +167,6 @@ class _TablePageState extends State<TablePage> {
     final authViewModel = Provider.of<AuthViewModel>(context, listen: false);
     final currentUserId = authViewModel.currentUser?.uid;
 
-    // 1. Fetch all data concurrently
     final results = await Future.wait([
       firestore.collection('usuarios').get(),
       firestore.collection('rank_clubes').get(),
@@ -156,10 +179,8 @@ class _TablePageState extends State<TablePage> {
     final ciudadesSnapshot = results[2] as QuerySnapshot<Map<String, dynamic>>;
     final whatsappSnapshot = results[3] as QuerySnapshot<Map<String, dynamic>>;
 
-    // 2. Process data to find best stats
     Map<String, UnifiedStats> bestStatsMap = {};
 
-    // Process 'usuarios' collection (base stats)
     for (var doc in usersSnapshot.docs) {
       var data = doc.data();
       if (data['uid'] == null) {
@@ -169,7 +190,6 @@ class _TablePageState extends State<TablePage> {
       bestStatsMap[usuario.uid] = UnifiedStats.fromUsuario(usuario);
     }
 
-    // Helper function to process rank collections
     void processRankCollection(
         QuerySnapshot<Map<String, dynamic>> snapshot, String sourceName, String mapKey) {
       for (var doc in snapshot.docs) {
@@ -182,27 +202,22 @@ class _TablePageState extends State<TablePage> {
 
           if (bestStatsMap.containsKey(uid)) {
             if (unified.puntos > bestStatsMap[uid]!.puntos) {
-              bestStatsMap[uid] = unified; // Update if new score is better
+              bestStatsMap[uid] = unified;
             }
           } else {
-            bestStatsMap[uid] = unified; // Add if user not seen before
+            bestStatsMap[uid] = unified;
           }
         });
       }
     }
 
-    // Process each rank collection
     processRankCollection(clubesSnapshot, 'Clubes', 'jugadores');
     processRankCollection(ciudadesSnapshot, 'Ciudades', 'jugadores');
     processRankCollection(whatsappSnapshot, 'Whatsapp', 'integrantes');
 
-    // 3. Sort the results
     List<UnifiedStats> finalStatsList = bestStatsMap.values.toList();
-
-    // Sort by points descending
     finalStatsList.sort((a, b) => b.puntos.compareTo(a.puntos));
 
-    // Move the current user to the top of the list if they exist
     if (currentUserId != null) {
       final currentUserIndex = finalStatsList.indexWhere((stats) => stats.uid == currentUserId);
       if (currentUserIndex != -1) {
@@ -240,7 +255,6 @@ class _TablePageState extends State<TablePage> {
               icon: Icons.stadium,
             ),
 
-            // FutureBuilder to display the best stats table
             FutureBuilder<List<UnifiedStats>>(
               future: _bestStatsFuture,
               builder: (context, snapshot) {
@@ -263,8 +277,6 @@ class _TablePageState extends State<TablePage> {
                 }
 
                 final List<UnifiedStats> bestStats = snapshot.data!;
-
-                // Mapear List<UnifiedStats> al formato que espera TablaDatosJugador
                 final List<Map<String, dynamic>> datosParaTabla =
                     bestStats.map((stats) {
                   return {
@@ -284,9 +296,8 @@ class _TablePageState extends State<TablePage> {
               },
             ),
 
-            const SizedBox(height: 10), // Espaciador
+            const SizedBox(height: 10),
 
-            // Tabla para Ranking de Clubes
             RankingTable(
               title: 'Clubes',
               collectionName: 'rank_clubes',
@@ -294,7 +305,6 @@ class _TablePageState extends State<TablePage> {
               icon: Icons.shield,
             ),
 
-            // Tabla para Ranking de Ciudades
             RankingTable(
               title: 'Ciudades',
               collectionName: 'rank_ciudades',
@@ -302,7 +312,6 @@ class _TablePageState extends State<TablePage> {
               icon: Icons.location_city,
             ),
 
-            // Tabla para Ranking de WhatsApp
             RankingTable(
               title: 'WhatsApp',
               collectionName: 'rank_whatsapp',
@@ -316,8 +325,6 @@ class _TablePageState extends State<TablePage> {
   }
 }
 
-// ... (El resto de los widgets como SearchText, DropButton, RankingButton, TablaDatosJugador y EmptyQuerySnapshot se mantienen igual)
-// Se elimina EmptyQuerySnapshot ya que no se usa con FutureBuilder
 class SearchText extends StatelessWidget {
   const SearchText({
     super.key,
@@ -468,7 +475,7 @@ class TablaDatosJugador extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size; // Obtener size para el margin
+    final size = MediaQuery.of(context).size;
 
     TextStyle headerTextStyle = GoogleFonts.lato(
       color: AppColors.textWhite,
@@ -476,13 +483,13 @@ class TablaDatosJugador extends StatelessWidget {
     );
 
     TextStyle cellTextStyle = GoogleFonts.lato(
-      color: AppColors.textWhite, // O AppColors.textLightGray si se prefiere
+      color: AppColors.textWhite,
     );
 
     return Container(
-      width: size.width * 0.9, // Ancho similar a otros elementos
+      width: size.width * 0.9,
       margin: EdgeInsets.only(bottom: size.height * 0.06),
-      padding: EdgeInsets.symmetric(vertical: size.height * 0.02), // Padding interno
+      padding: EdgeInsets.symmetric(vertical: size.height * 0.02),
       decoration: BoxDecoration(
         color: AppColors.secondBlack,
         borderRadius: BorderRadius.circular(18),
@@ -493,14 +500,10 @@ class TablaDatosJugador extends StatelessWidget {
           padding: EdgeInsets.symmetric(vertical: size.height * 0.02),
           child: DataTable(
             headingRowColor: WidgetStateProperty.resolveWith<Color?>(
-              (Set<WidgetState> states) {
-                return AppColors.secondBlack; // Color de fondo para la fila de encabezados
-              },
+              (Set<WidgetState> states) => AppColors.secondBlack,
             ),
             dataRowColor: WidgetStateProperty.resolveWith<Color?>(
-              (Set<WidgetState> states) {
-                return AppColors.secondBlack; // Color de fondo para las filas de datos
-              },
+              (Set<WidgetState> states) => AppColors.secondBlack,
             ),
             columns: <DataColumn>[
               DataColumn(label: Text('JUGADOR', style: headerTextStyle)),
@@ -510,11 +513,12 @@ class TablaDatosJugador extends StatelessWidget {
               DataColumn(label: Text('SUB CTG', style: headerTextStyle)),
               DataColumn(label: Text('BON', style: headerTextStyle)),
               DataColumn(label: Text('PEN', style: headerTextStyle)),
-              DataColumn(label: Text('ACCIONES', style: headerTextStyle)), // Nueva columna para el botón
+              DataColumn(label: Text('ACCIONES', style: headerTextStyle)),
             ],
             rows: datos.map((fila) {
               bool isCurrentUser = fila['isCurrentUser'] ?? false;
-              String userId = fila['id']?.toString() ?? ''; // Asegurarse que el id sea String y no nulo
+              String userId = fila['id']?.toString() ?? '';
+              bool isEditable = fila['docId'] != null; // La fila es editable si tiene contexto
 
               return DataRow(
                 cells: <DataCell>[
@@ -526,16 +530,24 @@ class TablaDatosJugador extends StatelessWidget {
                   DataCell(Text(fila['BON'].toString(), style: cellTextStyle)),
                   DataCell(Text(fila['PEN'].toString(), style: cellTextStyle)),
                   DataCell(
-                    (isCurrentUser && userId.isNotEmpty) // Solo mostrar si es el usuario y hay ID
+                    (isCurrentUser && userId.isNotEmpty && isEditable)
                         ? IconButton(
                             icon: const Icon(Icons.edit, color: AppColors.primaryGreen),
                             onPressed: () {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) => EditProfileDataPage(userId: userId),
+                                  builder: (context) => EditProfileDataPage(
+                                    userId: userId,
+                                    sourceCollection: fila['collectionName'],
+                                    docId: fila['docId'],
+                                    mapKey: fila['mapKey'],
+                                  ),
                                 ),
-                              );
+                              ).then((_) {
+                                // Opcional: recargar datos si es necesario tras la edición.
+                                // Por ejemplo, si la página no se actualiza automáticamente.
+                              });
                             },
                           )
                         : Container(),

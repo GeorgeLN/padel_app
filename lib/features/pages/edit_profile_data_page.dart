@@ -1,15 +1,22 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:padel_app/data/models/jugador_stats.dart';
 import 'package:padel_app/features/design/app_colors.dart';
-import 'package:padel_app/data/models/user_model.dart';
-import 'package:padel_app/data/viewmodels/auth_viewmodel.dart';
-import 'package:provider/provider.dart';
 
 class EditProfileDataPage extends StatefulWidget {
-  final String userId; // Cambiado de Usuario a String
+  final String userId;
+  final String sourceCollection;
+  final String docId;
+  final String mapKey;
 
-  const EditProfileDataPage({super.key, required this.userId}); // Cambiado el constructor
+  const EditProfileDataPage({
+    super.key,
+    required this.userId,
+    required this.sourceCollection,
+    required this.docId,
+    required this.mapKey,
+  });
 
   @override
   State<EditProfileDataPage> createState() => _EditProfileDataPageState();
@@ -17,19 +24,17 @@ class EditProfileDataPage extends StatefulWidget {
 
 class _EditProfileDataPageState extends State<EditProfileDataPage> {
   final _formKey = GlobalKey<FormState>();
-  Usuario? _usuario; // Para almacenar los datos del usuario cargado
-  bool _isLoading = true; // Iniciar en true para mostrar carga mientras se obtienen datos
-  bool _isSaving = false; // Para el estado de guardado
+  JugadorStats? _jugadorStats;
+  bool _isLoading = true;
+  bool _isSaving = false;
 
-  // Controladores para los campos editables
   late TextEditingController _asistenciasController;
   late TextEditingController _bonificacionesController;
   late TextEditingController _efectividadController;
   late TextEditingController _penalizacionesController;
   late TextEditingController _puntosController;
-  late TextEditingController _puntosPosController;
-  late TextEditingController _rankingController;
   late TextEditingController _subcategoriaController;
+  late TextEditingController _nombreController;
 
   @override
   void initState() {
@@ -39,17 +44,13 @@ class _EditProfileDataPageState extends State<EditProfileDataPage> {
     _efectividadController = TextEditingController();
     _penalizacionesController = TextEditingController();
     _puntosController = TextEditingController();
-    _puntosPosController = TextEditingController();
-    _rankingController = TextEditingController();
     _subcategoriaController = TextEditingController();
+    _nombreController = TextEditingController();
 
-    // Añadir listeners para el cálculo automático
     _puntosController.addListener(_calcularEfectividad);
     _asistenciasController.addListener(_calcularEfectividad);
 
-    _loadUserData().then((_) {
-      _calcularEfectividad();
-    });
+    _loadJugadorStatsData();
   }
 
   void _calcularEfectividad() {
@@ -58,49 +59,98 @@ class _EditProfileDataPageState extends State<EditProfileDataPage> {
 
     if (puntos != null && asistencias != null && asistencias > 0) {
       final efectividad = (puntos / (asistencias * 3)) * 100;
-      _efectividadController.text = efectividad.toStringAsFixed(2).replaceAll('.', ',');
+      _efectividadController.text = efectividad.round().toString();
     } else {
-      _efectividadController.text = '0,00';
+      _efectividadController.text = '0';
     }
   }
 
-  Future<void> _loadUserData() async {
-    setState(() {
-      _isLoading = true;
-    });
+  Future<void> _loadJugadorStatsData() async {
+    setState(() { _isLoading = true; });
     try {
-      DocumentSnapshot userDoc = await FirebaseFirestore.instance
-          .collection('usuarios')
-          .doc(widget.userId)
+      DocumentSnapshot doc = await FirebaseFirestore.instance
+          .collection(widget.sourceCollection)
+          .doc(widget.docId)
           .get();
-      if (userDoc.exists) {
-        _usuario = Usuario.fromJson(userDoc.data() as Map<String, dynamic>);
-        // Inicializar controladores con los datos del usuario
-        _asistenciasController.text = _usuario!.asistencias.toString();
-        _bonificacionesController.text = _usuario!.bonificaciones.toString();
-        _efectividadController.text = _usuario!.efectividad.toString().replaceAll('.', ',');
-        _penalizacionesController.text = _usuario!.penalizaciones.toString();
-        _puntosController.text = _usuario!.puntos.toString();
-        _subcategoriaController.text = _usuario!.subcategoria.toString();
+
+      if (doc.exists) {
+        final data = doc.data() as Map<String, dynamic>;
+        final statsMap = data[widget.mapKey] as Map<String, dynamic>? ?? {};
+        final jugadorData = statsMap[widget.userId] as Map<String, dynamic>?;
+
+        if (jugadorData != null) {
+          _jugadorStats = JugadorStats.fromJson(jugadorData);
+          _asistenciasController.text = _jugadorStats!.asistencias.toString();
+          _bonificacionesController.text = _jugadorStats!.bonificaciones.toString();
+          _efectividadController.text = _jugadorStats!.efectividad.toString();
+          _penalizacionesController.text = _jugadorStats!.penalizacion.toString();
+          _puntosController.text = _jugadorStats!.puntos.toString();
+          _subcategoriaController.text = _jugadorStats!.subcategoria.toString();
+          _nombreController.text = _jugadorStats!.nombre;
+        } else {
+          throw Exception('Estadísticas de jugador no encontradas para el usuario.');
+        }
       } else {
-        // Manejar el caso donde el usuario no se encuentra
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Usuario no encontrado.', style: GoogleFonts.lato()), backgroundColor: Colors.red),
-        );
-        Navigator.of(context).pop(); // Regresar si no se encuentra el usuario
+        throw Exception('Documento de ranking no encontrado.');
       }
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error al cargar datos: $e', style: GoogleFonts.lato()), backgroundColor: Colors.red),
       );
-      Navigator.of(context).pop(); // Regresar en caso de error
+      Navigator.of(context).pop();
     } finally {
       if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
+        setState(() { _isLoading = false; });
+      }
+    }
+  }
+
+  Future<void> _guardarCambios() async {
+    if (_formKey.currentState!.validate() && _jugadorStats != null) {
+      setState(() { _isSaving = true; });
+
+      final efectividadValue = int.tryParse(_efectividadController.text) ?? _jugadorStats!.efectividad;
+
+      JugadorStats statsActualizado = JugadorStats(
+        uid: widget.userId,
+        nombre: _nombreController.text,
+        asistencias: int.tryParse(_asistenciasController.text) ?? _jugadorStats!.asistencias,
+        bonificaciones: int.tryParse(_bonificacionesController.text) ?? _jugadorStats!.bonificaciones,
+        efectividad: efectividadValue,
+        penalizacion: int.tryParse(_penalizacionesController.text) ?? _jugadorStats!.penalizacion,
+        puntos: int.tryParse(_puntosController.text) ?? _jugadorStats!.puntos,
+        subcategoria: int.tryParse(_subcategoriaController.text) ?? _jugadorStats!.subcategoria,
+      );
+
+      try {
+        await FirebaseFirestore.instance
+            .collection(widget.sourceCollection)
+            .doc(widget.docId)
+            .update({'${widget.mapKey}.${widget.userId}': statsActualizado.toJson()});
+
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Estadísticas actualizadas con éxito.', style: GoogleFonts.lato()),
+            backgroundColor: AppColors.primaryGreen,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+        Navigator.of(context).pop();
+      } catch (e) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error al guardar: $e', style: GoogleFonts.lato()),
+            backgroundColor: Colors.redAccent,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      } finally {
+        if(mounted) {
+          setState(() { _isSaving = false; });
+        }
       }
     }
   }
@@ -113,59 +163,8 @@ class _EditProfileDataPageState extends State<EditProfileDataPage> {
     _penalizacionesController.dispose();
     _puntosController.dispose();
     _subcategoriaController.dispose();
+    _nombreController.dispose();
     super.dispose();
-  }
-
-  Future<void> _guardarCambios() async {
-    if (_formKey.currentState!.validate() && _usuario != null) {
-      setState(() {
-        _isSaving = true;
-      });
-
-      // Reemplazar coma por punto para el parseo de double
-      final efectividadString = _efectividadController.text.replaceAll(',', '.');
-      final efectividadValue = double.tryParse(efectividadString) ?? _usuario!.efectividad;
-
-      Usuario usuarioActualizado = _usuario!.copyWith(
-        asistencias: int.tryParse(_asistenciasController.text) ?? _usuario!.asistencias,
-        bonificaciones: int.tryParse(_bonificacionesController.text) ?? _usuario!.bonificaciones,
-        efectividad: efectividadValue,
-        penalizaciones: int.tryParse(_penalizacionesController.text) ?? _usuario!.penalizaciones,
-        puntos: int.tryParse(_puntosController.text) ?? _usuario!.puntos,
-        subcategoria: int.tryParse(_subcategoriaController.text) ?? _usuario!.subcategoria,
-      );
-
-      final authViewModel = Provider.of<AuthViewModel>(context, listen: false);
-      authViewModel.clearErrorMessage();
-      bool success = await authViewModel.actualizarDatosUsuario(usuarioActualizado);
-
-      // Verificar si el widget sigue montado antes de actualizar el estado o mostrar SnackBar
-      if (!mounted) return;
-
-      setState(() {
-        _calcularEfectividad();
-        _isSaving = false; // Cambiado de _isLoading a _isSaving
-      });
-
-      if (success) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Perfil actualizado con éxito.', style: GoogleFonts.lato()),
-            backgroundColor: AppColors.primaryGreen,
-            behavior: SnackBarBehavior.floating, // Hacerla flotante
-          ),
-        );
-        Navigator.of(context).pop();
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(authViewModel.errorMessage ?? 'Error al actualizar el perfil.', style: GoogleFonts.lato()),
-            backgroundColor: Colors.redAccent, // Un rojo más suave
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-      }
-    }
   }
 
   @override
@@ -175,15 +174,15 @@ class _EditProfileDataPageState extends State<EditProfileDataPage> {
     return Scaffold(
       backgroundColor: AppColors.primaryBlack,
       appBar: AppBar(
-        title: Text('Editar Estadísticas', style: GoogleFonts.lato(color: AppColors.textWhite, fontWeight: FontWeight.bold)), // Título cambiado
+        title: Text('Editar Estadísticas', style: GoogleFonts.lato(color: AppColors.textWhite, fontWeight: FontWeight.bold)),
         backgroundColor: AppColors.secondBlack,
         iconTheme: const IconThemeData(color: AppColors.textWhite),
         elevation: 0,
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator(color: AppColors.primaryGreen))
-          : _usuario == null // Añadido chequeo por si _usuario es null después de carga
-              ? Center(child: Text('No se pudieron cargar los datos del usuario.', style: GoogleFonts.lato(color: AppColors.textWhite)))
+          : _jugadorStats == null
+              ? Center(child: Text('No se pudieron cargar los datos.', style: GoogleFonts.lato(color: AppColors.textWhite)))
               : SingleChildScrollView(
                   padding: EdgeInsets.all(size.width * 0.05),
                   child: Form(
@@ -191,6 +190,13 @@ class _EditProfileDataPageState extends State<EditProfileDataPage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: <Widget>[
+                        _buildTextFormField(
+                          controller: _nombreController,
+                          labelText: 'Nombre',
+                          validatorText: 'Ingresa un nombre.',
+                          size: size,
+                        ),
+                        SizedBox(height: size.height * 0.025),
                         _buildTextFormField(
                           controller: _asistenciasController,
                           labelText: 'Asistencias',
@@ -210,9 +216,10 @@ class _EditProfileDataPageState extends State<EditProfileDataPage> {
                         _buildTextFormField(
                           controller: _efectividadController,
                           labelText: 'Efectividad (%)',
-                          validatorText: 'Ingresa un número válido (ej: 75.5).',
+                          validatorText: 'Valor inválido.',
                           keyboardType: const TextInputType.numberWithOptions(decimal: true),
                           size: size,
+                          readOnly: true,
                         ),
                         SizedBox(height: size.height * 0.025),
                         _buildTextFormField(
@@ -239,31 +246,31 @@ class _EditProfileDataPageState extends State<EditProfileDataPage> {
                           size: size,
                         ),
                         SizedBox(height: size.height * 0.04),
-                        _isSaving // Cambiado de _isLoading a _isSaving
+                        _isSaving
                             ? const Center(child: CircularProgressIndicator(color: AppColors.primaryGreen))
                             : ElevatedButton(
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: AppColors.primaryGreen,
-                        padding: EdgeInsets.symmetric(vertical: size.height * 0.018),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12), // Bordes más redondeados
-                        ),
-                        elevation: 3, // Sombra ligera
-                      ),
-                      onPressed: _guardarCambios,
-                      child: Text(
-                        'Guardar Cambios',
-                        style: GoogleFonts.lato(
-                          color: AppColors.textBlack,
-                          fontSize: size.width * 0.042,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
+                                  padding: EdgeInsets.symmetric(vertical: size.height * 0.018),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  elevation: 3,
+                                ),
+                                onPressed: _guardarCambios,
+                                child: Text(
+                                  'Guardar Cambios',
+                                  style: GoogleFonts.lato(
+                                    color: AppColors.textBlack,
+                                    fontSize: size.width * 0.042,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                      ],
                     ),
-            ],
-          ),
-        ),
-      ),
+                  ),
+                ),
     );
   }
 
@@ -273,18 +280,19 @@ class _EditProfileDataPageState extends State<EditProfileDataPage> {
     required String validatorText,
     int? maxLines = 1,
     required Size size,
-    TextInputType? keyboardType, // Añadido keyboardType
+    TextInputType? keyboardType,
+    bool readOnly = false,
   }) {
     return TextFormField(
       controller: controller,
       style: GoogleFonts.lato(color: AppColors.textWhite, fontSize: size.width * 0.04),
-      keyboardType: keyboardType, // Aplicado keyboardType
-      readOnly: labelText == 'Efectividad (%)',
+      keyboardType: keyboardType,
+      readOnly: readOnly,
       decoration: InputDecoration(
         labelText: labelText,
         labelStyle: GoogleFonts.lato(color: AppColors.textLightGray.withValues(alpha: 0.8), fontSize: size.width * 0.04),
-        filled: true, // Añadir fondo al campo
-        fillColor: AppColors.secondBlack.withValues(alpha: 0.5), // Color de fondo sutil
+        filled: true,
+        fillColor: readOnly ? Colors.grey[800] : AppColors.secondBlack.withValues(alpha: 0.5),
         enabledBorder: OutlineInputBorder(
           borderSide: BorderSide(color: AppColors.textLightGray.withValues(alpha: 0.5), width: 1),
           borderRadius: BorderRadius.circular(10),
@@ -293,15 +301,15 @@ class _EditProfileDataPageState extends State<EditProfileDataPage> {
           borderSide: const BorderSide(color: AppColors.primaryGreen, width: 1.5),
           borderRadius: BorderRadius.circular(10),
         ),
-        errorBorder: OutlineInputBorder( // Borde para error
+        errorBorder: OutlineInputBorder(
           borderSide: const BorderSide(color: Colors.redAccent, width: 1),
           borderRadius: BorderRadius.circular(10),
         ),
-        focusedErrorBorder: OutlineInputBorder( // Borde para error enfocado
+        focusedErrorBorder: OutlineInputBorder(
           borderSide: const BorderSide(color: Colors.redAccent, width: 1.5),
           borderRadius: BorderRadius.circular(10),
         ),
-        contentPadding: EdgeInsets.symmetric(horizontal: size.width * 0.04, vertical: size.height * 0.02), // Padding interno
+        contentPadding: EdgeInsets.symmetric(horizontal: size.width * 0.04, vertical: size.height * 0.02),
         alignLabelWithHint: maxLines != null && maxLines > 1,
       ),
       maxLines: maxLines,
@@ -312,19 +320,5 @@ class _EditProfileDataPageState extends State<EditProfileDataPage> {
         return null;
       },
     );
-  }
-}
-
-// Extensión en AuthViewModel para limpiar el mensaje de error si es necesario
-extension ClearError on AuthViewModel {
-  void clearErrorMessage() {
-    // Esta es una forma de exponer la limpieza del error si _clearError es privado.
-    // Si _clearError ya es público o tienes otro método, usa ese.
-    // Como _clearError es private, necesitamos un método público o modificarlo.
-    // Por ahora, asumiré que el error se limpia antes de cada operación de carga.
-    // Si no, necesitaríamos añadir:
-    // String? _errorMessage; (si no existe ya)
-    // void clearErrorMessagePublic() { _errorMessage = null; notifyListeners(); }
-    // Y llamarlo authViewModel.clearErrorMessagePublic();
   }
 }
