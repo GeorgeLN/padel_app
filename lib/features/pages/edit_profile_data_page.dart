@@ -69,6 +69,9 @@ class _EditProfileDataPageState extends State<EditProfileDataPage> {
   Future<void> _loadJugadorStatsData() async {
     setState(() { _isLoading = true; });
     try {
+      DocumentSnapshot userDoc = await FirebaseFirestore.instance.collection('users').doc(widget.userId).get();
+      String userName = userDoc.exists ? userDoc.get('nombre') ?? '' : '';
+
       DocumentSnapshot doc = await FirebaseFirestore.instance
           .collection(widget.sourceCollection)
           .doc(widget.docId)
@@ -77,23 +80,28 @@ class _EditProfileDataPageState extends State<EditProfileDataPage> {
       if (doc.exists) {
         final data = doc.data() as Map<String, dynamic>;
         final statsMap = data[widget.mapKey] as Map<String, dynamic>? ?? {};
-        final jugadorData = statsMap[widget.userId] as Map<String, dynamic>?;
+        final jugadorData = statsMap[widget.userId]as Map<String, dynamic>?;
 
         if (jugadorData != null) {
           _jugadorStats = JugadorStats.fromJson(jugadorData);
+          if (_jugadorStats!.nombre.isEmpty) {
+            _jugadorStats = _jugadorStats!.copyWith(nombre: userName);
+          }
         } else {
-          _jugadorStats = JugadorStats(uid: widget.userId);
+          _jugadorStats = JugadorStats.empty(uid: widget.userId, nombre: userName);
         }
-        _asistenciasController.text = _jugadorStats!.asistencias.toString();
-        _bonificacionesController.text = _jugadorStats!.bonificaciones.toString();
-        _efectividadController.text = _jugadorStats!.efectividad.toString();
-        _penalizacionesController.text = _jugadorStats!.penalizacion.toString();
-        _puntosController.text = _jugadorStats!.puntos.toString();
-        _subcategoriaController.text = _jugadorStats!.subcategoria.toString();
-        _nombreController.text = _jugadorStats!.nombre;
       } else {
-        throw Exception('Documento de ranking no encontrado.');
+        _jugadorStats = JugadorStats.empty(uid: widget.userId, nombre: userName);
       }
+
+      _asistenciasController.text = _jugadorStats!.asistencias.toString();
+      _bonificacionesController.text = _jugadorStats!.bonificaciones.toString();
+      _efectividadController.text = _jugadorStats!.efectividad.toString();
+      _penalizacionesController.text = _jugadorStats!.penalizacion.toString();
+      _puntosController.text = _jugadorStats!.puntos.toString();
+      _subcategoriaController.text = _jugadorStats!.subcategoria.toString();
+      _nombreController.text = _jugadorStats!.nombre;
+
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -113,9 +121,8 @@ class _EditProfileDataPageState extends State<EditProfileDataPage> {
 
       final efectividadValue = int.tryParse(_efectividadController.text) ?? _jugadorStats!.efectividad;
 
-      JugadorStats statsActualizado = JugadorStats(
-        uid: widget.userId,
-        nombre: _nombreController.text,
+      JugadorStats statsActualizado = _jugadorStats!.copyWith(
+        nombre: _jugadorStats!.nombre,
         asistencias: int.tryParse(_asistenciasController.text) ?? _jugadorStats!.asistencias,
         bonificaciones: int.tryParse(_bonificacionesController.text) ?? _jugadorStats!.bonificaciones,
         efectividad: efectividadValue,
@@ -196,6 +203,7 @@ class _EditProfileDataPageState extends State<EditProfileDataPage> {
                           labelText: 'Nombre',
                           validatorText: 'Ingresa un nombre.',
                           size: size,
+                          readOnly: true,
                         ),
                         SizedBox(height: size.height * 0.025),
                         _buildTextFormField(
