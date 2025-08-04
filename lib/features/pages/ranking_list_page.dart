@@ -43,8 +43,24 @@ class RankingListPage extends StatelessWidget {
             itemCount: documents.length,
             itemBuilder: (context, index) {
               final doc = documents[index];
+              final data = doc.data() as Map<String, dynamic>;
+              String name;
+              switch (collectionName) {
+                case 'rank_ciudades':
+                  name = data['ciudad'] ?? doc.id;
+                  break;
+                case 'rank_clubes':
+                  name = data['club'] ?? doc.id;
+                  break;
+                case 'rank_whatsapp':
+                  name = data['nombre_grupo'] ?? doc.id;
+                  break;
+                default:
+                  name = doc.id;
+              }
+
               return ListTile(
-                title: Text(doc.id, style: GoogleFonts.lato(color: AppColors.textWhite)),
+                title: Text(name, style: GoogleFonts.lato(color: AppColors.textWhite)),
                 trailing: const Icon(Icons.arrow_forward_ios, color: AppColors.textWhite),
                 onTap: () {
                   Navigator.push(
@@ -53,6 +69,7 @@ class RankingListPage extends StatelessWidget {
                       builder: (context) => RankingDetailPage(
                         collectionName: collectionName,
                         docId: doc.id,
+                        title: name,
                       ),
                     ),
                   );
