@@ -58,10 +58,10 @@ class _TablePageState extends State<TablePage> {
       firestore.collection('rank_whatsapp').get(),
     ]);
 
-    final usersSnapshot = results[0] as QuerySnapshot<Map<String, dynamic>>;
-    final clubesSnapshot = results[1] as QuerySnapshot<Map<String, dynamic>>;
-    final ciudadesSnapshot = results[2] as QuerySnapshot<Map<String, dynamic>>;
-    final whatsappSnapshot = results[3] as QuerySnapshot<Map<String, dynamic>>;
+    final usersSnapshot = results[0];
+    final clubesSnapshot = results[1];
+    final ciudadesSnapshot = results[2];
+    final whatsappSnapshot = results[3];
 
     Map<String, UnifiedStats> bestStatsMap = {};
 

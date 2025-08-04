@@ -108,7 +108,7 @@ class _RoomPageState extends State<RoomPage> {
                         bool isEnabled = true;
 
                         DateTime now = DateTime.now();
-                        DateTime slotTime = DateTime(_selectedDate.year, _selectedDate.month, _selectedDate.day, hora);
+                        // DateTime slotTime = DateTime(_selectedDate.year, _selectedDate.month, _selectedDate.day, hora);
 
                         if (_selectedDate.day == now.day && _selectedDate.month == now.month && _selectedDate.year == now.year) {
                           if (hora < now.hour) {

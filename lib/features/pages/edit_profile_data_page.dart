@@ -145,7 +145,7 @@ class _EditProfileDataPageState extends State<EditProfileDataPage> {
 
       setState(() { _isSaving = true; });
 
-      final efectividadValue = int.tryParse(_efectividadController.text) ?? _jugadorStats!.efectividad;
+      // final efectividadValue = int.tryParse(_efectividadController.text) ?? _jugadorStats!.efectividad;
 
       JugadorStats statsActualizado = _jugadorStats!.copyWith(
         asistencias: int.tryParse(_asistenciasController.text) ?? _jugadorStats!.asistencias,
