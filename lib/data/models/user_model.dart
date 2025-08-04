@@ -2,6 +2,7 @@ class Usuario {
   final String uid;
   final String correoElectronico;
   final String nombre;
+  final String documento;
   final String descripcionPerfil;
   final int asistencias;
   final int bonificaciones;
@@ -14,6 +15,7 @@ class Usuario {
     required this.uid,
     required this.correoElectronico,
     required this.nombre,
+    required this.documento,
     required this.descripcionPerfil,
     this.asistencias = 0,
     this.bonificaciones = 0,
@@ -29,6 +31,7 @@ class Usuario {
       'uid': uid,
       'correoElectronico': correoElectronico,
       'nombre': nombre,
+      'documento': documento,
       'descripcionPerfil': descripcionPerfil,
       'asistencias': asistencias,
       'bonificaciones': bonificaciones,
@@ -45,6 +48,7 @@ class Usuario {
       uid: json['uid'] as String? ?? "",
       correoElectronico: json['correoElectronico'] as String,
       nombre: json['nombre'] as String,
+      documento: json['documento'] as String? ?? "",
       descripcionPerfil: json['descripcionPerfil'] as String,
       asistencias: json['asistencias'] as int? ?? 0,
       bonificaciones: json['bonificaciones'] as int? ?? 0,
@@ -60,6 +64,7 @@ class Usuario {
     String? uid,
     String? correoElectronico,
     String? nombre,
+    String? documento,
     String? descripcionPerfil,
     int? asistencias,
     int? bonificaciones,
@@ -72,6 +77,7 @@ class Usuario {
       uid: uid ?? this.uid,
       correoElectronico: correoElectronico ?? this.correoElectronico,
       nombre: nombre ?? this.nombre,
+      documento: documento ?? this.documento,
       descripcionPerfil: descripcionPerfil ?? this.descripcionPerfil,
       asistencias: asistencias ?? this.asistencias,
       bonificaciones: bonificaciones ?? this.bonificaciones,

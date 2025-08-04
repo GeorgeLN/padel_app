@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:padel_app/features/design/app_colors.dart';
+import 'package:padel_app/features/pages/add_ranking_page.dart';
 import 'package:padel_app/features/pages/ranking_detail_page.dart';
 
 class RankingListPage extends StatelessWidget {
@@ -23,6 +24,21 @@ class RankingListPage extends StatelessWidget {
         centerTitle: true,
         backgroundColor: AppColors.secondBlack,
         iconTheme: const IconThemeData(color: AppColors.textWhite),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => AddRankingPage(
+                collectionName: collectionName,
+                title: title,
+              ),
+            ),
+          );
+        },
+        backgroundColor: AppColors.primaryGreen,
+        child: const Icon(Icons.add, color: AppColors.textWhite),
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance.collection(collectionName).snapshots(),
