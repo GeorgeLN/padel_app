@@ -121,7 +121,6 @@ class _EditProfileDataPageState extends State<EditProfileDataPage> {
       JugadorStats statsActualizado = _jugadorStats!.copyWith(
         asistencias: int.tryParse(_asistenciasController.text) ?? _jugadorStats!.asistencias,
         bonificaciones: int.tryParse(_bonificacionesController.text) ?? _jugadorStats!.bonificaciones,
-        efectividad: efectividadValue,
         penalizacion: int.tryParse(_penalizacionesController.text) ?? _jugadorStats!.penalizacion,
         puntos: int.tryParse(_puntosController.text) ?? _jugadorStats!.puntos,
         subcategoria: int.tryParse(_subcategoriaController.text) ?? _jugadorStats!.subcategoria,
