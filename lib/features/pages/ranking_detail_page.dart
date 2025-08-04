@@ -10,11 +10,13 @@ import 'package:padel_app/data/viewmodels/auth_viewmodel.dart';
 class RankingDetailPage extends StatefulWidget {
   final String collectionName;
   final String docId;
+  final String title;
 
   const RankingDetailPage({
     super.key,
     required this.collectionName,
     required this.docId,
+    required this.title,
   });
 
   @override
@@ -83,7 +85,7 @@ class _RankingDetailPageState extends State<RankingDetailPage> {
     return Scaffold(
       backgroundColor: AppColors.primaryBlack,
       appBar: AppBar(
-        title: Text(widget.docId, style: GoogleFonts.lato(color: AppColors.textWhite)),
+        title: Text(widget.title, style: GoogleFonts.lato(color: AppColors.textWhite)),
         centerTitle: true,
         backgroundColor: AppColors.secondBlack,
         iconTheme: const IconThemeData(color: AppColors.textWhite),
