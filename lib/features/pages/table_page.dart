@@ -10,6 +10,7 @@ import 'package:padel_app/features/design/app_colors.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:padel_app/data/models/user_model.dart';
 import 'package:padel_app/data/viewmodels/auth_viewmodel.dart';
+import 'package:padel_app/features/pages/ranking_list_page.dart';
 import 'package:provider/provider.dart';
 
 import 'edit_profile_data_page.dart';
@@ -34,124 +35,6 @@ class TablePage extends StatefulWidget {
 
   @override
   State<TablePage> createState() => _TablePageState();
-}
-
-class RankingTable extends StatefulWidget {
-  final String title;
-  final String collectionName;
-  final String mapKey;
-  final IconData icon;
-
-  const RankingTable({
-    super.key,
-    required this.title,
-    required this.collectionName,
-    required this.mapKey,
-    required this.icon,
-  });
-
-  @override
-  State<RankingTable> createState() => _RankingTableState();
-}
-
-class _RankingTableState extends State<RankingTable> {
-  late Stream<List<JugadorStatsConContexto>> _rankStatsStream;
-
-  @override
-  void initState() {
-    super.initState();
-    _rankStatsStream = _getRankStatsStream();
-  }
-
-  Stream<List<JugadorStatsConContexto>> _getRankStatsStream() {
-    return FirebaseFirestore.instance
-        .collection(widget.collectionName)
-        .snapshots()
-        .map((snapshot) {
-      if (snapshot.docs.isEmpty) {
-        return <JugadorStatsConContexto>[];
-      }
-
-      List<JugadorStatsConContexto> allStats = [];
-      for (var doc in snapshot.docs) {
-        final data = doc.data();
-        final statsMap = data[widget.mapKey] as Map<String, dynamic>? ?? {};
-
-        statsMap.forEach((uid, statsData) {
-          var statsWithUid = Map<String, dynamic>.from(statsData);
-          if (statsWithUid['uid'] == null || statsWithUid['uid'] == '') {
-            statsWithUid['uid'] = uid;
-          }
-          final stats = JugadorStats.fromJson(statsWithUid);
-          allStats.add(JugadorStatsConContexto(
-            stats: stats,
-            docId: doc.id,
-            collectionName: widget.collectionName,
-            mapKey: widget.mapKey,
-          ));
-        });
-      }
-
-      allStats.sort((a, b) => b.stats.puntos.compareTo(a.stats.puntos));
-      return allStats;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
-    // Escuchar cambios en AuthViewModel para reconstruir si el usuario cambia
-    final authViewModel = Provider.of<AuthViewModel>(context);
-
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        DropButton(
-          size: size,
-          name: widget.title,
-          icon: widget.icon,
-        ),
-        StreamBuilder<List<JugadorStatsConContexto>>(
-          stream: _rankStatsStream,
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator(color: AppColors.primaryGreen));
-            }
-            if (snapshot.hasError) {
-              return Center(child: Text('Error: ${snapshot.error}', style: GoogleFonts.lato(color: AppColors.textWhite)));
-            }
-            if (!snapshot.hasData || snapshot.data!.isEmpty) {
-              return Center(child: Padding(
-                padding: const EdgeInsets.all(20.0),
-                child: Text('No hay datos en este ranking.', style: GoogleFonts.lato(color: AppColors.textWhite)),
-              ));
-            }
-
-            final List<JugadorStatsConContexto> statsList = snapshot.data!;
-            final List<Map<String, dynamic>> tableData = statsList.map((statsConContexto) {
-              final stats = statsConContexto.stats;
-              return {
-                'JUGADOR': stats.nombre,
-                '%': '${stats.efectividad}%',
-                'ASIST': stats.asistencias,
-                'PTS': stats.puntos,
-                'SUB CTG': stats.subcategoria,
-                'BON': stats.bonificaciones,
-                'PEN': stats.penalizacion,
-                'id': stats.uid,
-                'isCurrentUser': authViewModel.currentUser?.uid == stats.uid,
-                'docId': statsConContexto.docId,
-                'collectionName': statsConContexto.collectionName,
-                'mapKey': statsConContexto.mapKey,
-              };
-            }).toList();
-
-            return TablaDatosJugador(datos: tableData);
-          },
-        ),
-      ],
-    );
-  }
 }
 
 class _TablePageState extends State<TablePage> {
@@ -254,6 +137,7 @@ class _TablePageState extends State<TablePage> {
               size: size,
               name: 'General',
               icon: Icons.stadium,
+              onPressed: () {},
             ),
 
             FutureBuilder<List<UnifiedStats>>(
@@ -299,25 +183,55 @@ class _TablePageState extends State<TablePage> {
 
             const SizedBox(height: 10),
 
-            RankingTable(
-              title: 'Clubes',
-              collectionName: 'rank_clubes',
-              mapKey: 'jugadores',
+            DropButton(
+              size: size,
+              name: 'Clubes',
               icon: Icons.shield,
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const RankingListPage(
+                      collectionName: 'rank_clubes',
+                      title: 'Clubes',
+                    ),
+                  ),
+                );
+              },
             ),
 
-            RankingTable(
-              title: 'Ciudades',
-              collectionName: 'rank_ciudades',
-              mapKey: 'jugadores',
+            DropButton(
+              size: size,
+              name: 'Ciudades',
               icon: Icons.location_city,
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const RankingListPage(
+                      collectionName: 'rank_ciudades',
+                      title: 'Ciudades',
+                    ),
+                  ),
+                );
+              },
             ),
 
-            RankingTable(
-              title: 'WhatsApp',
-              collectionName: 'rank_whatsapp',
-              mapKey: 'integrantes',
+            DropButton(
+              size: size,
+              name: 'WhatsApp',
               icon: Icons.chat,
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const RankingListPage(
+                      collectionName: 'rank_whatsapp',
+                      title: 'Grupos de WhatsApp',
+                    ),
+                  ),
+                );
+              },
             ),
           ],
         ),
@@ -371,11 +285,13 @@ class DropButton extends StatelessWidget {
     required this.size,
     required this.name,
     required this.icon,
+    this.onPressed,
   });
 
   final Size size;
   final String name;
   final IconData icon;
+  final VoidCallback? onPressed;
 
   @override
   Widget build(BuildContext context) {
@@ -422,9 +338,7 @@ class DropButton extends StatelessWidget {
           ),
     
           IconButton(
-            onPressed: (){
-              //ACTIONS HERE
-            },
+            onPressed: onPressed,
             icon: Icon(Icons.arrow_forward_ios_rounded, color: AppColors.textWhite, size: size.width * 0.05),
           ),
         ],
