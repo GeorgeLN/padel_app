@@ -81,16 +81,16 @@ class _EditProfileDataPageState extends State<EditProfileDataPage> {
 
         if (jugadorData != null) {
           _jugadorStats = JugadorStats.fromJson(jugadorData);
-          _asistenciasController.text = _jugadorStats!.asistencias.toString();
-          _bonificacionesController.text = _jugadorStats!.bonificaciones.toString();
-          _efectividadController.text = _jugadorStats!.efectividad.toString();
-          _penalizacionesController.text = _jugadorStats!.penalizacion.toString();
-          _puntosController.text = _jugadorStats!.puntos.toString();
-          _subcategoriaController.text = _jugadorStats!.subcategoria.toString();
-          _nombreController.text = _jugadorStats!.nombre;
         } else {
-          throw Exception('Estadísticas de jugador no encontradas para el usuario.');
+          _jugadorStats = JugadorStats(uid: widget.userId);
         }
+        _asistenciasController.text = _jugadorStats!.asistencias.toString();
+        _bonificacionesController.text = _jugadorStats!.bonificaciones.toString();
+        _efectividadController.text = _jugadorStats!.efectividad.toString();
+        _penalizacionesController.text = _jugadorStats!.penalizacion.toString();
+        _puntosController.text = _jugadorStats!.puntos.toString();
+        _subcategoriaController.text = _jugadorStats!.subcategoria.toString();
+        _nombreController.text = _jugadorStats!.nombre;
       } else {
         throw Exception('Documento de ranking no encontrado.');
       }
