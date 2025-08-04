@@ -35,7 +35,6 @@ class _EditProfileDataPageState extends State<EditProfileDataPage> {
   late TextEditingController _penalizacionesController;
   late TextEditingController _puntosController;
   late TextEditingController _subcategoriaController;
-  late TextEditingController _nombreController;
 
   @override
   void initState() {
@@ -46,7 +45,6 @@ class _EditProfileDataPageState extends State<EditProfileDataPage> {
     _penalizacionesController = TextEditingController();
     _puntosController = TextEditingController();
     _subcategoriaController = TextEditingController();
-    _nombreController = TextEditingController();
 
     _puntosController.addListener(_calcularEfectividad);
     _asistenciasController.addListener(_calcularEfectividad);
@@ -100,7 +98,6 @@ class _EditProfileDataPageState extends State<EditProfileDataPage> {
       _penalizacionesController.text = _jugadorStats!.penalizacion.toString();
       _puntosController.text = _jugadorStats!.puntos.toString();
       _subcategoriaController.text = _jugadorStats!.subcategoria.toString();
-      _nombreController.text = _jugadorStats!.nombre;
 
     } catch (e) {
       if (!mounted) return;
@@ -170,7 +167,6 @@ class _EditProfileDataPageState extends State<EditProfileDataPage> {
     _penalizacionesController.dispose();
     _puntosController.dispose();
     _subcategoriaController.dispose();
-    _nombreController.dispose();
     super.dispose();
   }
 
@@ -197,14 +193,6 @@ class _EditProfileDataPageState extends State<EditProfileDataPage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: <Widget>[
-                        _buildTextFormField(
-                          controller: _nombreController,
-                          labelText: 'Nombre',
-                          validatorText: 'Ingresa un nombre.',
-                          size: size,
-                          readOnly: true,
-                        ),
-                        SizedBox(height: size.height * 0.025),
                         _buildTextFormField(
                           controller: _asistenciasController,
                           labelText: 'Asistencias',
