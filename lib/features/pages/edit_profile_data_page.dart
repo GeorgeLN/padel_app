@@ -26,6 +26,7 @@ class EditProfileDataPage extends StatefulWidget {
 class _EditProfileDataPageState extends State<EditProfileDataPage> {
   final _formKey = GlobalKey<FormState>();
   JugadorStats? _jugadorStats;
+  String? _statsMapKey; // Clave real del mapa de estadísticas para el usuario
   bool _isLoading = true;
   bool _isSaving = false;
 
@@ -78,7 +79,26 @@ class _EditProfileDataPageState extends State<EditProfileDataPage> {
       if (doc.exists) {
         final data = doc.data() as Map<String, dynamic>;
         final statsMap = data[widget.mapKey] as Map<String, dynamic>? ?? {};
-        final jugadorData = statsMap[widget.userId] as Map<String, dynamic>?;
+
+        Map<String, dynamic>? jugadorData;
+        String? foundKey;
+
+        // Búsqueda robusta: itera para encontrar al jugador por su UID,
+        // ya que la clave del mapa puede no coincidir.
+        for (var entry in statsMap.entries) {
+          final statsData = entry.value as Map<String, dynamic>?;
+          if (statsData != null) {
+            final innerUid = statsData['uid'] as String?;
+            // Comprueba si el UID interno coincide o si la clave del mapa coincide.
+            if (innerUid == widget.userId || (innerUid == null && entry.key == widget.userId)) {
+              jugadorData = statsData;
+              foundKey = entry.key;
+              break; // Jugador encontrado
+            }
+          }
+        }
+
+        _statsMapKey = foundKey; // Guardar la clave real para la operación de guardado
 
         if (jugadorData != null) {
           _jugadorStats = JugadorStats.fromJson(jugadorData);
@@ -86,6 +106,7 @@ class _EditProfileDataPageState extends State<EditProfileDataPage> {
             _jugadorStats = _jugadorStats!.copyWith(nombre: userName);
           }
         } else {
+          // Si no se encuentra, inicializa con valores por defecto
           _jugadorStats = JugadorStats(uid: widget.userId, nombre: userName);
         }
       } else {
@@ -114,6 +135,14 @@ class _EditProfileDataPageState extends State<EditProfileDataPage> {
 
   Future<void> _guardarCambios() async {
     if (_formKey.currentState!.validate() && _jugadorStats != null) {
+      if (_statsMapKey == null) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: No se pudo encontrar el registro para actualizar.', style: GoogleFonts.lato()), backgroundColor: Colors.red),
+        );
+        return;
+      }
+
       setState(() { _isSaving = true; });
 
       final efectividadValue = int.tryParse(_efectividadController.text) ?? _jugadorStats!.efectividad;
@@ -130,7 +159,7 @@ class _EditProfileDataPageState extends State<EditProfileDataPage> {
         await FirebaseFirestore.instance
             .collection(widget.sourceCollection)
             .doc(widget.docId)
-            .update({'${widget.mapKey}.${widget.userId}': statsActualizado.toJson()});
+            .update({'${widget.mapKey}.$_statsMapKey': statsActualizado.toJson()});
 
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(

@@ -79,9 +79,9 @@ class _RankingTableState extends State<RankingTable> {
 
         statsMap.forEach((uid, statsData) {
           var statsWithUid = Map<String, dynamic>.from(statsData);
-          // Se asigna el UID desde la clave del mapa para asegurar consistencia.
-          // Esto evita problemas si el UID dentro del objeto no coincide con la clave.
-          statsWithUid['uid'] = uid;
+          if (statsWithUid['uid'] == null || statsWithUid['uid'] == '') {
+            statsWithUid['uid'] = uid;
+          }
           final stats = JugadorStats.fromJson(statsWithUid);
           allStats.add(JugadorStatsConContexto(
             stats: stats,
