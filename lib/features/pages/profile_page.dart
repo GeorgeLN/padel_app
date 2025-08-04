@@ -95,6 +95,7 @@ class _ProfilePageState extends State<ProfilePage> {
               penalizaciones: bestStats.penalizaciones,
               efectividad: bestStats.efectividad,
               subcategoria: bestStats.subcategoria,
+              documento: profileData.basicInfo.documento,
             );
 
             return RefreshIndicator(

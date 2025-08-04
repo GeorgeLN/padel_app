@@ -128,6 +128,7 @@ class AuthViewModel extends ChangeNotifier {
           penalizaciones: 0,
           puntos: 0,
           subcategoria: 0,
+          documento: '',
         );
 
         await _firestore

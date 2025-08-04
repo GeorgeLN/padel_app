@@ -64,7 +64,7 @@ class _AddRankingPageState extends State<AddRankingPage> {
       playersMap[userId] = JugadorStats(
         nombre: user.nombre,
         puntos: 0,
-        efectividad: 0,
+        // efectividad: 0,
         asistencias: 0,
         subcategoria: 0,
         bonificaciones: 0,
