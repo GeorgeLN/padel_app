@@ -15,9 +15,17 @@ class JugadorStats {
     this.penalizacion = 0,
     this.puntos = 0,
     this.subcategoria = 0,
-    this.nombre = '',
-    this.uid = '',
+    required this.nombre,
+    required this.uid,
   });
+
+  JugadorStats.empty({this.nombre = '', this.uid = ''})
+      : asistencias = 0,
+        bonificaciones = 0,
+        efectividad = 0,
+        penalizacion = 0,
+        puntos = 0,
+        subcategoria = 0;
 
   factory JugadorStats.fromJson(Map<String, dynamic> json) {
     return JugadorStats(
@@ -43,5 +51,27 @@ class JugadorStats {
       'nombre': nombre,
       'uid': uid,
     };
+  }
+
+  JugadorStats copyWith({
+    int? asistencias,
+    int? bonificaciones,
+    int? efectividad,
+    int? penalizacion,
+    int? puntos,
+    int? subcategoria,
+    String? nombre,
+    String? uid,
+  }) {
+    return JugadorStats(
+      asistencias: asistencias ?? this.asistencias,
+      bonificaciones: bonificaciones ?? this.bonificaciones,
+      efectividad: efectividad ?? this.efectividad,
+      penalizacion: penalizacion ?? this.penalizacion,
+      puntos: puntos ?? this.puntos,
+      subcategoria: subcategoria ?? this.subcategoria,
+      nombre: nombre ?? this.nombre,
+      uid: uid ?? this.uid,
+    );
   }
 }
