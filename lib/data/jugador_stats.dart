@@ -15,17 +15,9 @@ class JugadorStats {
     this.penalizacion = 0,
     this.puntos = 0,
     this.subcategoria = 0,
-    required this.nombre,
-    required this.uid,
+    this.nombre = '',
+    this.uid = '',
   });
-
-  JugadorStats.empty({this.nombre = '', this.uid = ''})
-      : asistencias = 0,
-        bonificaciones = 0,
-        efectividad = 0,
-        penalizacion = 0,
-        puntos = 0,
-        subcategoria = 0;
 
   factory JugadorStats.fromJson(Map<String, dynamic> json) {
     return JugadorStats(
