@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:padel_app/data/jugador_stats.dart';
 import 'package:padel_app/features/design/app_colors.dart';
+import 'package:padel_app/features/pages/add_player_to_ranking_page.dart';
 import 'package:padel_app/features/pages/table_page.dart';
 import 'package:provider/provider.dart';
 import 'package:padel_app/data/viewmodels/auth_viewmodel.dart';
@@ -129,6 +130,18 @@ class _RankingDetailPageState extends State<RankingDetailPage> {
             ),
           );
         },
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.of(context).push(MaterialPageRoute(
+            builder: (context) => AddPlayerToRankingPage(
+              collectionName: widget.collectionName,
+              docId: widget.docId,
+            ),
+          ));
+        },
+        backgroundColor: AppColors.primaryGreen,
+        child: const Icon(Icons.add, color: AppColors.textWhite),
       ),
     );
   }
