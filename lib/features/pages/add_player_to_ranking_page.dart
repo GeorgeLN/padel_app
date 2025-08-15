@@ -2,7 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:padel_app/data/models/user_model.dart';
-import 'packagepackage:padel_app/features/design/app_colors.dart';
+import '../design/app_colors.dart';
 import 'package:padel_app/data/jugador_stats.dart';
 
 class AddPlayerToRankingPage extends StatefulWidget {
@@ -165,25 +165,25 @@ class _AddPlayerToRankingPageState extends State<AddPlayerToRankingPage> {
             const SizedBox(height: 20),
             Expanded(
               child: _filteredUsers.isEmpty
-                  ? Center(child: Text('No se encontraron jugadores o ya todos están en el ranking.', textAlign: TextAlign.center, style: GoogleFonts.lato(color: AppColors.textWhite)))
-                  : ListView.builder(
-                      itemCount: _filteredUsers.length,
-                      itemBuilder: (context, index) {
-                        final user = _filteredUsers[index];
-                        final isSelected = _selectedUserIds.contains(user.uid);
-                        return ListTile(
-                          title: Text(user.nombre, style: GoogleFonts.lato(color: AppColors.textWhite)),
-                          subtitle: Text(user.documento, style: GoogleFonts.lato(color: AppColors.textLightGray)),
-                          trailing: IconButton(
-                            icon: Icon(
-                              isSelected ? Icons.remove_circle : Icons.add_circle,
-                              color: isSelected ? Colors.red : AppColors.primaryGreen,
-                            ),
-                            onPressed: () => _toggleUserSelection(user.uid),
+                ? Center(child: Text('No se encontraron jugadores o ya todos están en el ranking.', textAlign: TextAlign.center, style: GoogleFonts.lato(color: AppColors.textWhite)))
+                : ListView.builder(
+                    itemCount: _filteredUsers.length,
+                    itemBuilder: (context, index) {
+                      final user = _filteredUsers[index];
+                      final isSelected = _selectedUserIds.contains(user.uid);
+                      return ListTile(
+                        title: Text(user.nombre, style: GoogleFonts.lato(color: AppColors.textWhite)),
+                        subtitle: Text(user.documento, style: GoogleFonts.lato(color: AppColors.textLightGray)),
+                        trailing: IconButton(
+                          icon: Icon(
+                            isSelected ? Icons.remove_circle : Icons.add_circle,
+                            color: isSelected ? Colors.red : AppColors.primaryGreen,
                           ),
-                        );
-                      },
-                    ),
+                          onPressed: () => _toggleUserSelection(user.uid),
+                        ),
+                      );
+                    },
+                  ),
             ),
             ElevatedButton(
               onPressed: _savePlayers,
