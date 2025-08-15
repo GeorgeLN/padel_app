@@ -2,34 +2,34 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:padel_app/data/models/user_model.dart';
-import 'package:padel_app/features/design/app_colors.dart';
+import 'packagepackage:padel_app/features/design/app_colors.dart';
 import 'package:padel_app/data/jugador_stats.dart';
 
-class AddRankingPage extends StatefulWidget {
+class AddPlayerToRankingPage extends StatefulWidget {
   final String collectionName;
-  final String title;
+  final String docId;
 
-  const AddRankingPage({
+  const AddPlayerToRankingPage({
     super.key,
     required this.collectionName,
-    required this.title,
+    required this.docId,
   });
 
   @override
-  State<AddRankingPage> createState() => _AddRankingPageState();
+  State<AddPlayerToRankingPage> createState() => _AddPlayerToRankingPageState();
 }
 
-class _AddRankingPageState extends State<AddRankingPage> {
-  final _nameController = TextEditingController();
+class _AddPlayerToRankingPageState extends State<AddPlayerToRankingPage> {
   final _searchController = TextEditingController();
   List<Usuario> _allUsers = [];
   List<Usuario> _filteredUsers = [];
   final List<String> _selectedUserIds = [];
+  List<String> _existingPlayerIds = [];
 
   @override
   void initState() {
     super.initState();
-    _getUsers();
+    _getUsersAndPlayers();
     _searchController.addListener(_filterUsers);
   }
 
@@ -37,16 +37,43 @@ class _AddRankingPageState extends State<AddRankingPage> {
   void dispose() {
     _searchController.removeListener(_filterUsers);
     _searchController.dispose();
-    _nameController.dispose();
     super.dispose();
   }
 
-  Future<void> _getUsers() async {
+  String get mapKey {
+    switch (widget.collectionName) {
+      case 'rank_clubes':
+        return 'jugadores';
+      case 'rank_ciudades':
+        return 'jugadores';
+      case 'rank_whatsapp':
+        return 'integrantes';
+      default:
+        return 'jugadores';
+    }
+  }
+
+  Future<void> _getUsersAndPlayers() async {
     try {
-      final snapshot =
-          await FirebaseFirestore.instance.collection('usuarios').get();
-      final users =
-          snapshot.docs.map((doc) => Usuario.fromJson(doc.data())).toList();
+      // Get existing players
+      final docSnapshot = await FirebaseFirestore.instance
+          .collection(widget.collectionName)
+          .doc(widget.docId)
+          .get();
+
+      if (docSnapshot.exists) {
+        final data = docSnapshot.data();
+        final playersMap = data?[mapKey] as Map<String, dynamic>? ?? {};
+        _existingPlayerIds = playersMap.keys.toList();
+      }
+
+      // Get all users and filter out existing ones
+      final snapshot = await FirebaseFirestore.instance.collection('usuarios').get();
+      final users = snapshot.docs
+          .map((doc) => Usuario.fromJson(doc.data()))
+          .where((user) => !_existingPlayerIds.contains(user.uid))
+          .toList();
+
       setState(() {
         _allUsers = users;
         _filteredUsers = users;
@@ -77,19 +104,17 @@ class _AddRankingPageState extends State<AddRankingPage> {
     });
   }
 
-  Future<void> _saveRanking() async {
-    if (_nameController.text.isEmpty || _selectedUserIds.isEmpty) {
-      // Show an error message if name is empty or no users are selected
+  Future<void> _savePlayers() async {
+    if (_selectedUserIds.isEmpty) {
       return;
     }
 
     final playersMap = <String, dynamic>{};
     for (var userId in _selectedUserIds) {
       final user = _allUsers.firstWhere((u) => u.uid == userId);
-      playersMap[userId] = JugadorStats(
+      playersMap['$mapKey.$userId'] = JugadorStats(
         nombre: user.nombre,
         puntos: 0,
-        // efectividad: 0,
         asistencias: 0,
         subcategoria: 0,
         bonificaciones: 0,
@@ -98,39 +123,10 @@ class _AddRankingPageState extends State<AddRankingPage> {
       ).toJson();
     }
 
-    String fieldName;
-    switch (widget.collectionName) {
-      case 'rank_ciudades':
-        fieldName = 'ciudad';
-        break;
-      case 'rank_clubes':
-        fieldName = 'club';
-        break;
-      case 'rank_whatsapp':
-        fieldName = 'nombre_grupo';
-        break;
-      default:
-        fieldName = 'nombre';
-    }
-
-    String mapKey;
-    switch (widget.collectionName) {
-      case 'rank_clubes':
-        mapKey = 'jugadores';
-        break;
-      case 'rank_ciudades':
-        mapKey = 'jugadores';
-        break;
-      case 'rank_whatsapp':
-        mapKey = 'integrantes';
-      default:
-        mapKey = 'jugadores';
-    }
-
-    await FirebaseFirestore.instance.collection(widget.collectionName).add({
-      fieldName: _nameController.text,
-      mapKey: playersMap,
-    });
+    await FirebaseFirestore.instance
+        .collection(widget.collectionName)
+        .doc(widget.docId)
+        .update(playersMap);
 
     if (mounted) {
       Navigator.of(context).pop();
@@ -142,7 +138,7 @@ class _AddRankingPageState extends State<AddRankingPage> {
     return Scaffold(
       backgroundColor: AppColors.primaryBlack,
       appBar: AppBar(
-        title: Text('Añadir a ${widget.title}', style: GoogleFonts.lato(color: AppColors.textWhite)),
+        title: Text('Añadir Jugador', style: GoogleFonts.lato(color: AppColors.textWhite)),
         centerTitle: true,
         backgroundColor: AppColors.secondBlack,
         iconTheme: const IconThemeData(color: AppColors.textWhite),
@@ -151,21 +147,6 @@ class _AddRankingPageState extends State<AddRankingPage> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            TextFormField(
-              controller: _nameController,
-              style: GoogleFonts.lato(color: AppColors.textWhite),
-              decoration: InputDecoration(
-                labelText: 'Nombre',
-                labelStyle: GoogleFonts.lato(color: AppColors.textWhite),
-                enabledBorder: const UnderlineInputBorder(
-                  borderSide: BorderSide(color: AppColors.primaryGreen),
-                ),
-                focusedBorder: const UnderlineInputBorder(
-                  borderSide: BorderSide(color: AppColors.primaryGreen),
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
             TextFormField(
               controller: _searchController,
               style: GoogleFonts.lato(color: AppColors.textWhite),
@@ -184,7 +165,7 @@ class _AddRankingPageState extends State<AddRankingPage> {
             const SizedBox(height: 20),
             Expanded(
               child: _filteredUsers.isEmpty
-                  ? const Center(child: CircularProgressIndicator(color: AppColors.primaryGreen))
+                  ? Center(child: Text('No se encontraron jugadores o ya todos están en el ranking.', textAlign: TextAlign.center, style: GoogleFonts.lato(color: AppColors.textWhite)))
                   : ListView.builder(
                       itemCount: _filteredUsers.length,
                       itemBuilder: (context, index) {
@@ -205,7 +186,7 @@ class _AddRankingPageState extends State<AddRankingPage> {
                     ),
             ),
             ElevatedButton(
-              onPressed: _saveRanking,
+              onPressed: _savePlayers,
               style: ElevatedButton.styleFrom(backgroundColor: AppColors.primaryGreen),
               child: Text('Guardar', style: GoogleFonts.lato(color: AppColors.textWhite)),
             ),
