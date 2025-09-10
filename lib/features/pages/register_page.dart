@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:padel_app/features/design/app_colors.dart'; // Ajusta la ruta si es necesario
@@ -15,7 +16,9 @@ class _RegisterPageState extends State<RegisterPage> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _nombreController = TextEditingController();
+  final _documentoController = TextEditingController();
   final _descripcionController = TextEditingController();
+  final _profesionController = TextEditingController();
   final _passwordController = TextEditingController();
   final _verifyPasswordController = TextEditingController();
 
@@ -23,7 +26,9 @@ class _RegisterPageState extends State<RegisterPage> {
   void dispose() {
     _emailController.dispose();
     _nombreController.dispose();
+    _documentoController.dispose();
     _descripcionController.dispose();
+    _profesionController.dispose();
     _passwordController.dispose();
     _verifyPasswordController.dispose();
     super.dispose();
@@ -36,6 +41,8 @@ class _RegisterPageState extends State<RegisterPage> {
         email: _emailController.text.trim(),
         password: _passwordController.text,
         nombre: _nombreController.text.trim(),
+        documento: _documentoController.text.trim(),
+        profesion: _profesionController.text.trim(),
         descripcionPerfil: _descripcionController.text.trim(),
       );
 
@@ -113,6 +120,18 @@ class _RegisterPageState extends State<RegisterPage> {
                 ),
                 SizedBox(height: size.height * 0.02),
                 _buildTextFormField(
+                  controller: _documentoController,
+                  labelText: 'Documento',
+                  icon: Icons.badge_rounded,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Por favor, ingresa tu nombre.';
+                    }
+                    return null;
+                  },
+                ),
+                SizedBox(height: size.height * 0.02),
+                _buildTextFormField(
                   controller: _descripcionController,
                   labelText: 'Descripción del Perfil',
                   icon: Icons.description,
@@ -120,6 +139,18 @@ class _RegisterPageState extends State<RegisterPage> {
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Por favor, ingresa una descripción.';
+                    }
+                    return null;
+                  },
+                ),
+                SizedBox(height: size.height * 0.02),
+                _buildTextFormField(
+                  controller: _profesionController,
+                  labelText: 'Profesión',
+                  icon: Icons.work_history_rounded,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Por favor, ingresa tu nombre.';
                     }
                     return null;
                   },
@@ -144,7 +175,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 _buildTextFormField(
                   controller: _verifyPasswordController,
                   labelText: 'Verificar Contraseña',
-                  icon: Icons.lock_outline,
+                  icon: Icons.lock_reset_rounded,
                   obscureText: true,
                   validator: (value) {
                     if (value == null || value.isEmpty) {

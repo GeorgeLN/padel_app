@@ -155,7 +155,7 @@ class _AddRankingPageState extends State<AddRankingPage> {
               controller: _nameController,
               style: GoogleFonts.lato(color: AppColors.textWhite),
               decoration: InputDecoration(
-                labelText: 'Nombre',
+                labelText: 'Nombre del Club / Ciudad / Grupo de WhatsApp',
                 labelStyle: GoogleFonts.lato(color: AppColors.textWhite),
                 enabledBorder: const UnderlineInputBorder(
                   borderSide: BorderSide(color: AppColors.primaryGreen),

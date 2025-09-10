@@ -105,6 +105,8 @@ class AuthViewModel extends ChangeNotifier {
     required String password,
     required String nombre,
     required String descripcionPerfil,
+    required String documento,
+    required String profesion,
   }) async {
     _setLoading(true);
     _clearError();
@@ -122,13 +124,14 @@ class AuthViewModel extends ChangeNotifier {
           correoElectronico: email,
           nombre: nombre,
           descripcionPerfil: descripcionPerfil,
+          profesion: profesion,
           asistencias: 0,
           bonificaciones: 0,
           efectividad: 0.0,
           penalizaciones: 0,
           puntos: 0,
           subcategoria: 0,
-          documento: '',
+          documento: documento,
         );
 
         await _firestore
