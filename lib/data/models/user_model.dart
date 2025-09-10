@@ -10,6 +10,8 @@ class Usuario {
   final int penalizaciones;
   final int puntos;
   final int subcategoria; // Podría ser String si representa un nombre, pero se inicializa en 0
+  final bool admin;
+  final String profesion;
 
   Usuario({
     required this.uid,
@@ -23,6 +25,8 @@ class Usuario {
     this.penalizaciones = 0,
     this.puntos = 0,
     this.subcategoria = 0, // Asumiendo que 0 es un valor inicial válido
+    this.admin = false,
+    this.profesion = '',
   });
 
   // Método para convertir un objeto Usuario a un Map (para Firestore)
@@ -39,16 +43,18 @@ class Usuario {
       'penalizaciones': penalizaciones,
       'puntos': puntos,
       'subcategoria': subcategoria,
+      'admin': admin,
+      'profesion': profesion,
     };
   }
 
   // Método factory para crear un objeto Usuario desde un Map (de Firestore)
   factory Usuario.fromJson(Map<String, dynamic> json) {
     return Usuario(
-      uid: json['uid'] as String? ?? "",
+      uid: json['uid'] as String? ?? '',
       correoElectronico: json['correoElectronico'] as String,
       nombre: json['nombre'] as String,
-      documento: json['documento'] as String? ?? "",
+      documento: json['documento'] as String? ?? '',
       descripcionPerfil: json['descripcionPerfil'] as String,
       asistencias: json['asistencias'] as int? ?? 0,
       bonificaciones: json['bonificaciones'] as int? ?? 0,
@@ -56,6 +62,8 @@ class Usuario {
       penalizaciones: json['penalizaciones'] as int? ?? 0,
       puntos: json['puntos'] as int? ?? 0,
       subcategoria: json['subcategoria'] as int? ?? 0,
+      admin: json['admin'] as bool? ?? false,
+      profesion: json['profesion'] as String? ?? '',
     );
   }
 
@@ -72,6 +80,8 @@ class Usuario {
     int? penalizaciones,
     int? puntos,
     int? subcategoria,
+    bool? admin,
+    String? profesion,
   }) {
     return Usuario(
       uid: uid ?? this.uid,
@@ -85,6 +95,8 @@ class Usuario {
       penalizaciones: penalizaciones ?? this.penalizaciones,
       puntos: puntos ?? this.puntos,
       subcategoria: subcategoria ?? this.subcategoria,
+      admin: admin ?? this.admin,
+      profesion: profesion ?? this.profesion,
     );
   }
 }
