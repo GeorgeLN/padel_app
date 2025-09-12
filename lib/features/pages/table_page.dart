@@ -12,6 +12,7 @@ import 'package:padel_app/data/models/user_model.dart';
 import 'package:padel_app/data/viewmodels/auth_viewmodel.dart';
 import 'package:padel_app/features/pages/home_page.dart';
 import 'package:padel_app/features/pages/ranking_list_page.dart';
+import 'package:padel_app/features/pages/search_persons_page.dart';
 import 'package:provider/provider.dart';
 
 import 'edit_profile_data_page.dart';
@@ -367,7 +368,7 @@ class RankingButton extends StatelessWidget {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => const HomePage(),
+              builder: (context) => const SearchPersonsPage(),
             ),
           );
         },
