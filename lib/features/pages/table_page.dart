@@ -10,6 +10,7 @@ import 'package:padel_app/features/design/app_colors.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:padel_app/data/models/user_model.dart';
 import 'package:padel_app/data/viewmodels/auth_viewmodel.dart';
+import 'package:padel_app/features/pages/home_page.dart';
 import 'package:padel_app/features/pages/ranking_list_page.dart';
 import 'package:provider/provider.dart';
 
@@ -358,12 +359,17 @@ class RankingButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: size.width * 0.3,
+      width: size.width * 0.5,
       height: size.height * 0.05,
-      margin: EdgeInsets.only(right: size.width * 0.6, bottom: size.height * 0.02),
+      margin: EdgeInsets.only(bottom: size.height * 0.02),
       child: OutlinedButton(
         onPressed: (){
-          //ACTIONS HERE
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const HomePage(),
+            ),
+          );
         },
     
         style: OutlinedButton.styleFrom(
@@ -371,7 +377,7 @@ class RankingButton extends StatelessWidget {
           side: const BorderSide(color: AppColors.primaryGreen),
         ),
         child: Text(
-          'Ranking',
+          'Buscar personas',
           style: GoogleFonts.lato(
             color: AppColors.textBlack,
             fontSize: 16,

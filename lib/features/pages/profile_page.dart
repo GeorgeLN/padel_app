@@ -275,7 +275,7 @@ class BlurContainer extends StatelessWidget {
         child: Container(
           width: size.width * 0.8,
           height: size.height * 0.14,
-          padding: EdgeInsets.symmetric(vertical: size.height * 0.01, horizontal: size.width * 0.02),
+          padding: EdgeInsets.symmetric(vertical: size.height * 0.01, horizontal: size.width * 0.025),
           margin: EdgeInsets.only(bottom: size.height * 0.02),
           decoration: BoxDecoration(
             color: AppColors.primaryBlue.withOpacity(0.5),
@@ -289,16 +289,28 @@ class BlurContainer extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  _buildStatItem(context, Icons.emoji_events, 'Puntos', '${usuario.puntos}', size),
-                  _buildStatItem(context, Icons.check_circle_outline, 'Asistencias', '${usuario.asistencias}', size),
+                  Container(
+                    width: size.width * 0.3,
+                    child: _buildStatItem(context, Icons.emoji_events, 'Ranking', '${usuario.puntos}', size)
+                  ),
+                  Container(
+                    width: size.width * 0.3,
+                    child: _buildStatItem(context, Icons.check_circle_outline, 'Asistencia', '${usuario.asistencias}', size)
+                  ),
                 ],
               ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                   _buildStatItem(context, Icons.star, 'Bonos', '${usuario.bonificaciones}', size),
-                  _buildStatItem(context, Icons.warning_amber_rounded, 'Penalización', '${usuario.penalizaciones}', size),
+                  Container(
+                    width: size.width * 0.3,
+                    child: _buildStatItem(context, Icons.star, 'Bonos     ', '${usuario.bonificaciones}', size)
+                  ),
+                  Container(
+                    width: size.width * 0.3,
+                    child: _buildStatItem(context, Icons.warning_amber_rounded, 'Asistencia', '${usuario.penalizaciones}', size)
+                  ),
                 ],
               )
             ],
