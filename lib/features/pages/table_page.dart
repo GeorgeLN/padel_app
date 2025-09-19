@@ -121,12 +121,12 @@ class _TablePageState extends State<TablePage> {
     final authViewModel = Provider.of<AuthViewModel>(context, listen: false);
 
     return Scaffold(
-      backgroundColor: AppColors.primaryBlack,
+      backgroundColor: AppColors.primaryWhite,
       appBar: AppBar(
         title: Text('Ranking de Jugadores',
             style: GoogleFonts.lato(color: AppColors.textWhite)),
         centerTitle: true,
-        backgroundColor: AppColors.secondBlack,
+        backgroundColor: AppColors.primaryGreen,
         leading: const Icon(Icons.abc_rounded, color: Colors.transparent),
       ),
       body: SingleChildScrollView(
@@ -257,13 +257,13 @@ class SearchText extends StatelessWidget {
         width: size.width * 0.9,
         margin: EdgeInsets.only(top: size.height * 0.02, bottom: size.height * 0.02),
         child: TextFormField(
-          style: GoogleFonts.lato(color: AppColors.textLightGray),
+          style: GoogleFonts.lato(color: AppColors.textBlack),
           decoration: InputDecoration(
-            prefixIcon: const Icon(Icons.search, color: AppColors.textLightGray,),
+            prefixIcon: const Icon(Icons.search, color: AppColors.textBlack,),
             filled: true,
-            fillColor: AppColors.secondBlack,
+            fillColor: AppColors.secondLightGray.withValues(alpha: 0.4),
             hintText: 'Busca una competición',
-            hintStyle: GoogleFonts.lato(color: AppColors.textLightGray),
+            hintStyle: GoogleFonts.lato(color: AppColors.textBlack),
     
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(18),
@@ -272,7 +272,7 @@ class SearchText extends StatelessWidget {
     
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(18),
-              borderSide: const BorderSide(color: AppColors.textLightGray),
+              borderSide: const BorderSide(color: AppColors.textBlack),
             ),
           ),
         ),
@@ -308,7 +308,7 @@ class DropButton extends StatelessWidget {
         children: [
           CircleAvatar(
             radius: size.width * 0.075,
-            backgroundColor: AppColors.secondBlack,
+            backgroundColor: AppColors.primaryGreen,
             child: Icon(icon, color: AppColors.textWhite, size: size.width * 0.08),
           ),
     
@@ -322,7 +322,7 @@ class DropButton extends StatelessWidget {
                 Text(
                   name,
                   style: GoogleFonts.lato(
-                    color: AppColors.textWhite,
+                    color: AppColors.textBlack,
                     fontSize: size.width * 0.04,
                     fontWeight: FontWeight.bold,
                   ),
@@ -341,7 +341,7 @@ class DropButton extends StatelessWidget {
     
           IconButton(
             onPressed: onPressed,
-            icon: Icon(Icons.arrow_forward_ios_rounded, color: AppColors.textWhite, size: size.width * 0.05),
+            icon: Icon(Icons.arrow_forward_ios_rounded, color: AppColors.textBlack, size: size.width * 0.05),
           ),
         ],
       ),
@@ -380,7 +380,7 @@ class RankingButton extends StatelessWidget {
         child: Text(
           'Buscar personas',
           style: GoogleFonts.lato(
-            color: AppColors.textBlack,
+            color: AppColors.textWhite,
             fontSize: 16,
             fontWeight: FontWeight.bold,
           ),

@@ -60,7 +60,7 @@ class _LandingPageState extends State<LandingPage> {
   BottomAppBar _LandingScreenBottomNavBar(BuildContext context) {
     return BottomAppBar(
       padding: const EdgeInsets.all(10),
-      color: AppColors.primaryBlue,
+      color: AppColors.primaryGreen,
 
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -137,7 +137,7 @@ class _LandingPageState extends State<LandingPage> {
             ),
             Icon(
               context.watch<BottomNavCubit>().state == page ? filledIcon : defaultIcon,
-              color: context.watch<BottomNavCubit>().state == page ? Colors.blueGrey : Colors.grey,
+              color: context.watch<BottomNavCubit>().state == page ? Colors.white : Colors.black,
               size: 26,
             ),
             const SizedBox(
@@ -146,7 +146,7 @@ class _LandingPageState extends State<LandingPage> {
             Text(
               label,
               style: TextStyle(
-                color: context.watch<BottomNavCubit>().state == page ? Colors.blueGrey : Colors.grey,
+                color: context.watch<BottomNavCubit>().state == page ? Colors.white : Colors.black,
                 fontSize: 13,
                 fontWeight: context.watch<BottomNavCubit>().state == page ? FontWeight.w600 : FontWeight.w400,
               ),

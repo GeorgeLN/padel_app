@@ -51,9 +51,9 @@ class _ProfilePageState extends State<ProfilePage> {
     }
 
     return Scaffold(
-      backgroundColor: AppColors.primaryBlue,
+      backgroundColor: AppColors.primaryWhite,
       appBar: AppBar(
-        backgroundColor: AppColors.primaryBlue,
+        backgroundColor: AppColors.primaryGreen,
         title: Text('Perfil', style: GoogleFonts.lato(color: AppColors.textWhite, fontSize: size.width * 0.06, fontWeight: FontWeight.bold)),
         centerTitle: true,
         leading: Icon(Icons.abc_rounded, color: Colors.transparent),
@@ -149,7 +149,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                       ),
                                       child: Icon(
                                         Icons.local_fire_department,
-                                        color: AppColors.textBlack,
+                                        color: AppColors.textWhite,
                                         size: size.width * 0.08,
                                       ),
                                     ),
@@ -158,9 +158,9 @@ class _ProfilePageState extends State<ProfilePage> {
                                       text: TextSpan(
                                         children: [
                                           TextSpan(
-                                            text: 'Eficiencia ',
+                                            text: 'Eficiencia: ',
                                             style: GoogleFonts.lato(
-                                              color: AppColors.textWhite,
+                                              color: AppColors.textBlack,
                                               fontSize: size.width * 0.04,
                                               fontWeight: FontWeight.bold,
                                             ),
@@ -231,7 +231,7 @@ class PlayerDescription extends StatelessWidget {
         textAlign: TextAlign.start,
         text: TextSpan(
           style: GoogleFonts.lato(
-            color: AppColors.textWhite,
+            color: AppColors.textBlack,
             fontSize: size.width * 0.04,
           ),
           children: [
@@ -332,7 +332,7 @@ class BlurContainer extends StatelessWidget {
           ),
           child: Icon(
             icon,
-            color: AppColors.textBlack,
+            color: AppColors.textWhite,
             size: size.width * 0.055,
           ),
         ),

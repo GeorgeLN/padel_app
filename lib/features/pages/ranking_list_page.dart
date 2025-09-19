@@ -18,11 +18,11 @@ class RankingListPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.primaryBlack,
+      backgroundColor: AppColors.primaryWhite,
       appBar: AppBar(
         title: Text(title, style: GoogleFonts.lato(color: AppColors.textWhite)),
         centerTitle: true,
-        backgroundColor: AppColors.secondBlack,
+        backgroundColor: AppColors.primaryGreen,
         iconTheme: const IconThemeData(color: AppColors.textWhite),
       ),
       floatingActionButton: FloatingActionButton(
@@ -76,8 +76,8 @@ class RankingListPage extends StatelessWidget {
               }
 
               return ListTile(
-                title: Text(name, style: GoogleFonts.lato(color: AppColors.textWhite)),
-                trailing: const Icon(Icons.arrow_forward_ios, color: AppColors.textWhite),
+                title: Text(name, style: GoogleFonts.lato(color: AppColors.textBlack)),
+                trailing: const Icon(Icons.arrow_forward_ios, color: AppColors.textBlack),
                 onTap: () {
                   Navigator.push(
                     context,

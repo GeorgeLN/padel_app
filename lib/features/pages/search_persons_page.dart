@@ -94,11 +94,11 @@ class _SearchPersonsPageState extends State<SearchPersonsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.primaryBlack,
+      backgroundColor: AppColors.primaryWhite,
       appBar: AppBar(
         title: Text('Buscar Compañeros', style: GoogleFonts.lato(color: AppColors.textWhite)),
         centerTitle: true,
-        backgroundColor: AppColors.secondBlack,
+        backgroundColor: AppColors.primaryGreen,
         iconTheme: const IconThemeData(color: AppColors.textWhite),
       ),
       body: Padding(
@@ -107,10 +107,10 @@ class _SearchPersonsPageState extends State<SearchPersonsPage> {
           children: [
             TextFormField(
               controller: _searchController,
-              style: GoogleFonts.lato(color: AppColors.textWhite),
+              style: GoogleFonts.lato(color: AppColors.textBlack),
               decoration: InputDecoration(
                 labelText: 'Buscar por nombre',
-                labelStyle: GoogleFonts.lato(color: AppColors.textWhite),
+                labelStyle: GoogleFonts.lato(color: AppColors.textBlack),
                 prefixIcon: const Icon(Icons.search, color: AppColors.primaryGreen),
                 enabledBorder: const UnderlineInputBorder(
                   borderSide: BorderSide(color: AppColors.primaryGreen),
@@ -125,7 +125,7 @@ class _SearchPersonsPageState extends State<SearchPersonsPage> {
               child: _isLoading
                   ? const Center(child: CircularProgressIndicator())
                   : _filteredUsers.isEmpty
-                      ? Center(child: Text('No se encontraron compañeros con tu misma profesión.', textAlign: TextAlign.center, style: GoogleFonts.lato(color: AppColors.textWhite)))
+                      ? Center(child: Text('No se encontraron compañeros con tu misma profesión.', textAlign: TextAlign.center, style: GoogleFonts.lato(color: AppColors.textBlack)))
                       : ListView.builder(
                           itemCount: _filteredUsers.length,
                           itemBuilder: (context, index) {
@@ -135,7 +135,7 @@ class _SearchPersonsPageState extends State<SearchPersonsPage> {
                                 backgroundColor: AppColors.primaryGreen,
                                 child: Text(user.nombre.substring(0, 2).toUpperCase(), style: GoogleFonts.lato(color: AppColors.textWhite, fontWeight: FontWeight.bold)),
                               ),
-                              title: Text(user.nombre, style: GoogleFonts.lato(color: AppColors.textWhite)),
+                              title: Text(user.nombre, style: GoogleFonts.lato(color: AppColors.textBlack)),
                               subtitle: Text(user.profesion, style: GoogleFonts.lato(color: AppColors.textLightGray)),
                             );
                           },

@@ -82,13 +82,14 @@ class _RankingDetailPageState extends State<RankingDetailPage> {
   @override
   Widget build(BuildContext context) {
     final authViewModel = Provider.of<AuthViewModel>(context);
+    var size = MediaQuery.of(context).size;
 
     return Scaffold(
-      backgroundColor: AppColors.primaryBlack,
+      backgroundColor: AppColors.primaryWhite,
       appBar: AppBar(
         title: Text(widget.title, style: GoogleFonts.lato(color: AppColors.textWhite)),
         centerTitle: true,
-        backgroundColor: AppColors.secondBlack,
+        backgroundColor: AppColors.primaryGreen,
         iconTheme: const IconThemeData(color: AppColors.textWhite),
       ),
       body: StreamBuilder<List<JugadorStatsConContexto>>(
@@ -125,7 +126,7 @@ class _RankingDetailPageState extends State<RankingDetailPage> {
 
           return SingleChildScrollView(
             child: Padding(
-              padding: const EdgeInsets.all(8.0),
+              padding: EdgeInsets.only(top: size.height * 0.02, bottom: size.height * 0.1, left: size.width * 0.05),
               child: TablaDatosJugador(datos: tableData),
             ),
           );
