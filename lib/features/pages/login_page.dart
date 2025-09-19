@@ -59,11 +59,11 @@ class _LoginPageState extends State<LoginPage> {
     final size = MediaQuery.of(context).size;
 
     return Scaffold(
-      backgroundColor: AppColors.primaryBlack,
+      backgroundColor: AppColors.primaryWhite,
       appBar: AppBar(
         title: Text('Iniciar Sesión', style: GoogleFonts.lato(color: AppColors.textWhite)),
         centerTitle: true,
-        backgroundColor: AppColors.secondBlack,
+        backgroundColor: AppColors.primaryGreen,
         iconTheme: const IconThemeData(color: AppColors.textWhite),
         automaticallyImplyLeading: false,
       ),
@@ -78,7 +78,7 @@ class _LoginPageState extends State<LoginPage> {
                 Text(
                   'Bienvenido de Nuevo',
                   style: GoogleFonts.lato(
-                    color: AppColors.textWhite,
+                    color: AppColors.textBlack ,
                     fontSize: size.width * 0.06,
                     fontWeight: FontWeight.bold,
                   ),
@@ -128,7 +128,7 @@ class _LoginPageState extends State<LoginPage> {
                           child: Text(
                             'Iniciar Sesión',
                             style: GoogleFonts.lato(
-                              color: AppColors.textBlack,
+                              color: AppColors.textWhite,
                               fontSize: size.width * 0.045,
                               fontWeight: FontWeight.bold,
                             ),
@@ -164,13 +164,13 @@ class _LoginPageState extends State<LoginPage> {
   }) {
     return TextFormField(
       controller: controller,
-      style: GoogleFonts.lato(color: AppColors.textWhite),
+      style: GoogleFonts.lato(color: AppColors.textBlack),
       decoration: InputDecoration(
         labelText: labelText,
-        labelStyle: GoogleFonts.lato(color: AppColors.textLightGray),
-        prefixIcon: Icon(icon, color: AppColors.textLightGray),
+        labelStyle: GoogleFonts.lato(color: AppColors.textBlack),
+        prefixIcon: Icon(icon, color: AppColors.textBlack),
         filled: true,
-        fillColor: AppColors.secondBlack,
+        fillColor: AppColors.secondLightGray.withValues(alpha: 0.4),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(18),
           borderSide: BorderSide.none,
