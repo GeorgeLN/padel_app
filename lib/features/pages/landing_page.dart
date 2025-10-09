@@ -31,7 +31,6 @@ class _LandingPageState extends State<LandingPage> {
   /// Top Level Pages
   final List<Widget> topLevelPages = [
     HomePage(),
-    TablePage(),
     ProfilePage(),
   ];
 
@@ -78,19 +77,11 @@ class _LandingPageState extends State<LandingPage> {
                   label: "Home",
                   filledIcon: IconlyBold.home,
                 ),
-
-                _bottomAppBarItem(
-                  context,
-                  defaultIcon: IconlyLight.chart,
-                  page: 1,
-                  label: "Tablas",
-                  filledIcon: IconlyBold.chart,
-                ),
             
                 _bottomAppBarItem(
                   context,
                   defaultIcon: IconlyLight.profile,
-                  page: 2,
+                  page: 1,
                   label: "Perfil",
                   filledIcon: IconlyBold.profile,
                 ),
