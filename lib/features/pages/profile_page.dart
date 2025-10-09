@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:padel_app/data/repositories/auth_repository.dart';
 import 'package:padel_app/features/design/app_colors.dart';
 import 'package:provider/provider.dart';
 import 'dart:async';
@@ -67,8 +68,8 @@ class _ProfilePageState extends State<ProfilePage> {
           )
         ],
       ),
-      body: FutureBuilder<ProfileData?>(
-        future: _profileDataFuture,
+      body: FutureBuilder<ProfileData>(
+        future: _profileDataFuture as Future<ProfileData>,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator(color: AppColors.primaryGreen));
