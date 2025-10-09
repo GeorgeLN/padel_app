@@ -1,11 +1,11 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:padel_app/data/models/user_model.dart';
+import 'package:padel_app/data/repositories/ranking_repository.dart';
+import 'package:padel_app/data/viewmodels/ranking_viewmodel.dart';
 import 'package:padel_app/features/design/app_colors.dart';
-import 'package:padel_app/data/jugador_stats.dart';
+import 'package:provider/provider.dart';
 
-class AddRankingPage extends StatefulWidget {
+class AddRankingPage extends StatelessWidget {
   final String collectionName;
   final String title;
 
@@ -16,133 +16,60 @@ class AddRankingPage extends StatefulWidget {
   });
 
   @override
-  State<AddRankingPage> createState() => _AddRankingPageState();
+  Widget build(BuildContext context) {
+    return ChangeNotifierProvider(
+      create: (_) =>
+          RankingViewModel(repository: RankingRepository())..getUsers(),
+      child: _AddRankingPageContent(
+        collectionName: collectionName,
+        title: title,
+      ),
+    );
+  }
 }
 
-class _AddRankingPageState extends State<AddRankingPage> {
+class _AddRankingPageContent extends StatefulWidget {
+  final String collectionName;
+  final String title;
+
+  const _AddRankingPageContent({
+    required this.collectionName,
+    required this.title,
+  });
+
+  @override
+  State<_AddRankingPageContent> createState() => _AddRankingPageContentState();
+}
+
+class _AddRankingPageContentState extends State<_AddRankingPageContent> {
   final _nameController = TextEditingController();
   final _searchController = TextEditingController();
-  List<Usuario> _allUsers = [];
-  List<Usuario> _filteredUsers = [];
-  final List<String> _selectedUserIds = [];
 
   @override
   void initState() {
     super.initState();
-    _getUsers();
-    _searchController.addListener(_filterUsers);
+    _searchController.addListener(() {
+      Provider.of<RankingViewModel>(context, listen: false)
+          .filterUsers(_searchController.text);
+    });
   }
 
   @override
   void dispose() {
-    _searchController.removeListener(_filterUsers);
     _searchController.dispose();
     _nameController.dispose();
     super.dispose();
   }
 
-  Future<void> _getUsers() async {
-    try {
-      final snapshot =
-          await FirebaseFirestore.instance.collection('usuarios').get();
-      final users =
-          snapshot.docs.map((doc) => Usuario.fromJson(doc.data())).toList();
-      setState(() {
-        _allUsers = users;
-        _filteredUsers = users;
-      });
-    } catch (e) {
-      // Handle error
-    }
-  }
-
-  void _filterUsers() {
-    final query = _searchController.text.toLowerCase();
-    setState(() {
-      _filteredUsers = _allUsers.where((user) {
-        final nameMatches = user.nombre.toLowerCase().contains(query);
-        final documentMatches = user.documento.toLowerCase().contains(query);
-        return nameMatches || documentMatches;
-      }).toList();
-    });
-  }
-
-  void _toggleUserSelection(String userId) {
-    setState(() {
-      if (_selectedUserIds.contains(userId)) {
-        _selectedUserIds.remove(userId);
-      } else {
-        _selectedUserIds.add(userId);
-      }
-    });
-  }
-
-  Future<void> _saveRanking() async {
-    if (_nameController.text.isEmpty || _selectedUserIds.isEmpty) {
-      // Show an error message if name is empty or no users are selected
-      return;
-    }
-
-    final playersMap = <String, dynamic>{};
-    for (var userId in _selectedUserIds) {
-      final user = _allUsers.firstWhere((u) => u.uid == userId);
-      playersMap[userId] = JugadorStats(
-        nombre: user.nombre,
-        puntos: 0,
-        // efectividad: 0,
-        asistencias: 0,
-        subcategoria: 0,
-        bonificaciones: 0,
-        penalizacion: 0,
-        uid: user.uid,
-      ).toJson();
-    }
-
-    String fieldName;
-    switch (widget.collectionName) {
-      case 'rank_ciudades':
-        fieldName = 'ciudad';
-        break;
-      case 'rank_clubes':
-        fieldName = 'club';
-        break;
-      case 'rank_whatsapp':
-        fieldName = 'nombre_grupo';
-        break;
-      default:
-        fieldName = 'nombre';
-    }
-
-    String mapKey;
-    switch (widget.collectionName) {
-      case 'rank_clubes':
-        mapKey = 'jugadores';
-        break;
-      case 'rank_ciudades':
-        mapKey = 'jugadores';
-        break;
-      case 'rank_whatsapp':
-        mapKey = 'integrantes';
-      default:
-        mapKey = 'jugadores';
-    }
-
-    await FirebaseFirestore.instance.collection(widget.collectionName).add({
-      fieldName: _nameController.text,
-      mapKey: playersMap,
-    });
-
-    if (mounted) {
-      Navigator.of(context).pop();
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
+    final viewModel = Provider.of<RankingViewModel>(context);
+
     return Scaffold(
       backgroundColor: AppColors.primaryBlack,
       appBar: AppBar(
-        title: Text('Añadir a ${widget.title}', style: GoogleFonts.lato(color: AppColors.textWhite)),
+        title: Text('Añadir a ${widget.title}',
+            style: GoogleFonts.lato(color: AppColors.textWhite)),
         centerTitle: true,
         backgroundColor: AppColors.secondBlack,
         iconTheme: const IconThemeData(color: AppColors.textWhite),
@@ -172,7 +99,8 @@ class _AddRankingPageState extends State<AddRankingPage> {
               decoration: InputDecoration(
                 labelText: 'Buscar jugador por nombre o documento',
                 labelStyle: GoogleFonts.lato(color: AppColors.textWhite),
-                prefixIcon: const Icon(Icons.search, color: AppColors.primaryGreen),
+                prefixIcon:
+                    const Icon(Icons.search, color: AppColors.primaryGreen),
                 enabledBorder: const UnderlineInputBorder(
                   borderSide: BorderSide(color: AppColors.primaryGreen),
                 ),
@@ -183,31 +111,61 @@ class _AddRankingPageState extends State<AddRankingPage> {
             ),
             const SizedBox(height: 20),
             Expanded(
-              child: _filteredUsers.isEmpty
-                  ? const Center(child: CircularProgressIndicator(color: AppColors.primaryGreen))
+              child: viewModel.isLoading
+                  ? const Center(
+                      child: CircularProgressIndicator(
+                          color: AppColors.primaryGreen))
                   : ListView.builder(
-                      itemCount: _filteredUsers.length,
+                      itemCount: viewModel.filteredUsers.length,
                       itemBuilder: (context, index) {
-                        final user = _filteredUsers[index];
-                        final isSelected = _selectedUserIds.contains(user.uid);
+                        final user = viewModel.filteredUsers[index];
+                        final isSelected =
+                            viewModel.selectedUserIds.contains(user.uid);
                         return ListTile(
-                          title: Text(user.nombre, style: GoogleFonts.lato(color: AppColors.textWhite)),
-                          subtitle: Text(user.documento, style: GoogleFonts.lato(color: AppColors.textLightGray)),
+                          title: Text(user.nombre,
+                              style:
+                                  GoogleFonts.lato(color: AppColors.textWhite)),
+                          subtitle: Text(user.documento,
+                              style: GoogleFonts.lato(
+                                  color: AppColors.textLightGray)),
                           trailing: IconButton(
                             icon: Icon(
-                              isSelected ? Icons.remove_circle : Icons.add_circle,
-                              color: isSelected ? Colors.red : AppColors.primaryGreen,
+                              isSelected
+                                  ? Icons.remove_circle
+                                  : Icons.add_circle,
+                              color: isSelected
+                                  ? Colors.red
+                                  : AppColors.primaryGreen,
                             ),
-                            onPressed: () => _toggleUserSelection(user.uid),
+                            onPressed: () =>
+                                viewModel.toggleUserSelection(user.uid),
                           ),
                         );
                       },
                     ),
             ),
+            if (viewModel.errorMessage != null)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                child: Text(
+                  viewModel.errorMessage!,
+                  style: GoogleFonts.lato(color: Colors.red),
+                ),
+              ),
             ElevatedButton(
-              onPressed: _saveRanking,
-              style: ElevatedButton.styleFrom(backgroundColor: AppColors.primaryGreen),
-              child: Text('Guardar', style: GoogleFonts.lato(color: AppColors.textWhite)),
+              onPressed: () async {
+                final success = await viewModel.saveRanking(
+                  name: _nameController.text,
+                  collectionName: widget.collectionName,
+                );
+                if (success && mounted) {
+                  Navigator.of(context).pop();
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primaryGreen),
+              child: Text('Guardar',
+                  style: GoogleFonts.lato(color: AppColors.textWhite)),
             ),
           ],
         ),
