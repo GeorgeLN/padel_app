@@ -1,11 +1,12 @@
 
 import 'package:flutter/material.dart';
+import 'package:padel_app/data/repositories/auth_repository.dart';
+import 'package:padel_app/data/viewmodels/auth_viewmodel.dart';
 import 'package:padel_app/features/pages/_pages.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:padel_app/features/bloc/bottom_nav_cubit.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:padel_app/firebase_options.dart';
-import 'package:padel_app/data/viewmodels/auth_viewmodel.dart';
 import 'package:provider/provider.dart';
 
 void main() async {
@@ -20,7 +21,7 @@ void main() async {
           create: (context) => BottomNavCubit(),
         ),
         ChangeNotifierProvider( // Proveedor para AuthViewModel
-          create: (context) => AuthViewModel(),
+          create: (context) => AuthViewModel(authRepository: AuthRepository()),
         ),
       ],
       child: const MyApp(),

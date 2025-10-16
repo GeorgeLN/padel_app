@@ -45,7 +45,7 @@ class AppDrawer extends StatelessWidget {
             title: const Text('Ranking'),
             onTap: () {
                Navigator.pop(context);
-               Navigator.push(context, MaterialPageRoute(builder: (context) => const RankingListPage()));
+               Navigator.push(context, MaterialPageRoute(builder: (context) => const TablePage()));
             },
           ),
           ListTile(
@@ -56,7 +56,7 @@ class AppDrawer extends StatelessWidget {
             },
           ),
           ListTile(
-            leading: const Icon(IconlyLight.user_2),
+            leading: const Icon(IconlyLight.user_1),
             title: const Text('Jugadores'),
             onTap: () {
               _showComingSoonSnackBar(context);

@@ -68,8 +68,9 @@ class _ProfilePageState extends State<ProfilePage> {
           )
         ],
       ),
-      body: FutureBuilder<ProfileData>(
-        future: _profileDataFuture as Future<ProfileData>,
+      body: FutureBuilder<ProfileData?>(
+        //Corregir problema aqui
+        future: _profileDataFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator(color: AppColors.primaryGreen));
