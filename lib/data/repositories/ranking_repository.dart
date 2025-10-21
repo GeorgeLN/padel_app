@@ -1,11 +1,15 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:padel_app/data/models/user_model.dart';
+import 'package:padel_app/data/repositories/auth_repository.dart';
 
 class RankingRepository {
   final FirebaseFirestore _firestore;
+  final AuthRepository _authRepository;
 
-  RankingRepository({FirebaseFirestore? firestore})
-      : _firestore = firestore ?? FirebaseFirestore.instance;
+  RankingRepository(
+      {FirebaseFirestore? firestore, required AuthRepository authRepository})
+      : _firestore = firestore ?? FirebaseFirestore.instance,
+        _authRepository = authRepository;
 
   Future<List<Usuario>> getAllUsers() async {
     try {
@@ -23,6 +27,10 @@ class RankingRepository {
     required Map<String, dynamic> playersMap,
   }) async {
     try {
+      final currentUser = await _authRepository.obtenerDatosUsuarioActual();
+      if (currentUser == null || !currentUser.admin) {
+        throw Exception('No tienes permisos de administrador.');
+      }
       String fieldName;
       switch (collectionName) {
         case 'rank_ciudades':

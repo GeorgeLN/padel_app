@@ -1,6 +1,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:padel_app/data/repositories/auth_repository.dart';
+import 'package:padel_app/data/repositories/ranking_repository.dart';
 import 'package:padel_app/data/viewmodels/auth_viewmodel.dart';
 import 'package:padel_app/features/pages/_pages.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -17,11 +18,17 @@ void main() async {
   runApp(
     MultiProvider( // Cambiado a MultiProvider para incluir AuthViewModel
       providers: [
+        Provider<AuthRepository>(
+          create: (_) => AuthRepository(),
+        ),
+        ProxyProvider<AuthRepository, RankingRepository>(
+          update: (_, authRepo, __) => RankingRepository(authRepository: authRepo),
+        ),
         BlocProvider(
           create: (context) => BottomNavCubit(),
         ),
-        ChangeNotifierProvider( // Proveedor para AuthViewModel
-          create: (context) => AuthViewModel(authRepository: AuthRepository()),
+        ChangeNotifierProvider(
+          create: (context) => AuthViewModel(authRepository: context.read<AuthRepository>()),
         ),
       ],
       child: const MyApp(),
