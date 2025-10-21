@@ -114,4 +114,26 @@ class RankingRepository {
       throw Exception('Error al añadir jugadores al ranking: $e');
     }
   }
+
+  Future<void> updatePlayerStats({
+    required String collectionName,
+    required String docId,
+    required String mapKey,
+    required String statsMapKey,
+    required JugadorStats stats,
+  }) async {
+    try {
+      final currentUser = await _authRepository.obtenerDatosUsuarioActual();
+      if (currentUser == null || !currentUser.admin) {
+        throw Exception('No tienes permisos de administrador.');
+      }
+
+      await _firestore
+          .collection(collectionName)
+          .doc(docId)
+          .update({'$mapKey.$statsMapKey': stats.toJson()});
+    } catch (e) {
+      throw Exception('Error al actualizar las estadísticas: $e');
+    }
+  }
 }

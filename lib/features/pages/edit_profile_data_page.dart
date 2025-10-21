@@ -1,7 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:padel_app/data/repositories/ranking_repository.dart';
 import 'package:padel_app/features/design/app_colors.dart';
+import 'package:provider/provider.dart';
 
 import '../../data/jugador_stats.dart';
 
@@ -156,10 +158,15 @@ class _EditProfileDataPageState extends State<EditProfileDataPage> {
       );
 
       try {
-        await FirebaseFirestore.instance
-            .collection(widget.sourceCollection)
-            .doc(widget.docId)
-            .update({'${widget.mapKey}.$_statsMapKey': statsActualizado.toJson()});
+        final rankingRepository =
+            Provider.of<RankingRepository>(context, listen: false);
+        await rankingRepository.updatePlayerStats(
+          collectionName: widget.sourceCollection,
+          docId: widget.docId,
+          mapKey: widget.mapKey,
+          statsMapKey: _statsMapKey!,
+          stats: statsActualizado,
+        );
 
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(

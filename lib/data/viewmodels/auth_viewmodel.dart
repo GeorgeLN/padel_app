@@ -7,7 +7,9 @@ class AuthViewModel extends ChangeNotifier {
   final AuthRepository _authRepository;
 
   AuthViewModel({required AuthRepository authRepository})
-      : _authRepository = authRepository;
+      : _authRepository = authRepository {
+    _checkAdminStatus();
+  }
 
   bool _isLoading = false;
   bool get isLoading => _isLoading;
@@ -15,8 +17,17 @@ class AuthViewModel extends ChangeNotifier {
   String? _errorMessage;
   String? get errorMessage => _errorMessage;
 
+  bool _isAdmin = false;
+  bool get isAdmin => _isAdmin;
+
   User? get currentUser => _authRepository.currentUser;
   Stream<User?> get authStateChanges => _authRepository.authStateChanges;
+
+  Future<void> _checkAdminStatus() async {
+    final usuario = await _authRepository.obtenerDatosUsuarioActual();
+    _isAdmin = usuario?.admin ?? false;
+    notifyListeners();
+  }
 
   void _setLoading(bool loading) {
     _isLoading = loading;
@@ -76,6 +87,7 @@ class AuthViewModel extends ChangeNotifier {
     _clearError();
     try {
       await _authRepository.iniciarSesion(email, password);
+      await _checkAdminStatus();
       _setLoading(false);
       return true;
     } catch (e) {
@@ -90,6 +102,7 @@ class AuthViewModel extends ChangeNotifier {
     _clearError();
     try {
       await _authRepository.cerrarSesion();
+      _isAdmin = false;
       notifyListeners();
     } catch (e) {
       _errorMessage = e.toString();
