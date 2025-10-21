@@ -18,8 +18,9 @@ class AddRankingPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (_) =>
-          RankingViewModel(repository: RankingRepository())..getUsers(),
+      create: (_) => RankingViewModel(
+        repository: Provider.of<RankingRepository>(context, listen: false),
+      )..getUsers(),
       child: _AddRankingPageContent(
         collectionName: collectionName,
         title: title,
