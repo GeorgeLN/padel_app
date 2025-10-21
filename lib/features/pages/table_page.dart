@@ -397,6 +397,7 @@ class TablaDatosJugador extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final authViewModel = Provider.of<AuthViewModel>(context, listen: false);
     final size = MediaQuery.of(context).size;
 
     TextStyle headerTextStyle = GoogleFonts.lato(
@@ -407,6 +408,20 @@ class TablaDatosJugador extends StatelessWidget {
     TextStyle cellTextStyle = GoogleFonts.lato(
       color: AppColors.textWhite,
     );
+
+    List<DataColumn> columns = [
+      DataColumn(label: Text('JUGADOR', style: headerTextStyle)),
+      DataColumn(label: Text('EFEC', style: headerTextStyle)),
+      DataColumn(label: Text('ASIST', style: headerTextStyle)),
+      DataColumn(label: Text('PTS', style: headerTextStyle)),
+      DataColumn(label: Text('SUB CTG', style: headerTextStyle)),
+      DataColumn(label: Text('BON', style: headerTextStyle)),
+      DataColumn(label: Text('PEN', style: headerTextStyle)),
+    ];
+
+    if (authViewModel.isAdmin) {
+      columns.add(DataColumn(label: Text('ACCIONES', style: headerTextStyle)));
+    }
 
     return Container(
       width: size.width * 0.9,
@@ -427,34 +442,29 @@ class TablaDatosJugador extends StatelessWidget {
             dataRowColor: WidgetStateProperty.resolveWith<Color?>(
               (Set<WidgetState> states) => AppColors.secondBlack,
             ),
-            columns: <DataColumn>[
-              DataColumn(label: Text('JUGADOR', style: headerTextStyle)),
-              DataColumn(label: Text('EFEC', style: headerTextStyle)),
-              DataColumn(label: Text('ASIST', style: headerTextStyle)),
-              DataColumn(label: Text('PTS', style: headerTextStyle)),
-              DataColumn(label: Text('SUB CTG', style: headerTextStyle)),
-              DataColumn(label: Text('BON', style: headerTextStyle)),
-              DataColumn(label: Text('PEN', style: headerTextStyle)),
-              DataColumn(label: Text('ACCIONES', style: headerTextStyle)),
-            ],
+            columns: columns,
             rows: datos.map((fila) {
-              bool isCurrentUser = fila['isCurrentUser'] ?? false;
               String userId = fila['id']?.toString() ?? '';
-              bool isEditable = fila['docId'] != null; // La fila es editable si tiene contexto
+              bool isEditable = fila['docId'] != null;
 
-              return DataRow(
-                cells: <DataCell>[
-                  DataCell(Text(fila['JUGADOR'].toString(), style: cellTextStyle)),
-                  DataCell(Text(fila['%'].toString(), style: cellTextStyle)),
-                  DataCell(Text(fila['ASIST'].toString(), style: cellTextStyle)),
-                  DataCell(Text(fila['PTS'].toString(), style: cellTextStyle)),
-                  DataCell(Text(fila['SUB CTG'].toString(), style: cellTextStyle)),
-                  DataCell(Text(fila['BON'].toString(), style: cellTextStyle)),
-                  DataCell(Text(fila['PEN'].toString(), style: cellTextStyle)),
+              List<DataCell> cells = [
+                DataCell(Text(fila['JUGADOR'].toString(), style: cellTextStyle)),
+                DataCell(Text(fila['%'].toString(), style: cellTextStyle)),
+                DataCell(Text(fila['ASIST'].toString(), style: cellTextStyle)),
+                DataCell(Text(fila['PTS'].toString(), style: cellTextStyle)),
+                DataCell(
+                    Text(fila['SUB CTG'].toString(), style: cellTextStyle)),
+                DataCell(Text(fila['BON'].toString(), style: cellTextStyle)),
+                DataCell(Text(fila['PEN'].toString(), style: cellTextStyle)),
+              ];
+
+              if (authViewModel.isAdmin) {
+                cells.add(
                   DataCell(
-                    (isCurrentUser && userId.isNotEmpty && isEditable)
+                    (userId.isNotEmpty && isEditable)
                         ? IconButton(
-                            icon: const Icon(Icons.edit, color: AppColors.primaryGreen),
+                            icon: const Icon(Icons.edit,
+                                color: AppColors.primaryGreen),
                             onPressed: () {
                               Navigator.push(
                                 context,
@@ -466,16 +476,14 @@ class TablaDatosJugador extends StatelessWidget {
                                     mapKey: fila['mapKey'],
                                   ),
                                 ),
-                              ).then((_) {
-                                // Opcional: recargar datos si es necesario tras la edición.
-                                // Por ejemplo, si la página no se actualiza automáticamente.
-                              });
+                              );
                             },
                           )
                         : Container(),
                   ),
-                ],
-              );
+                );
+              }
+              return DataRow(cells: cells);
             }).toList(),
           ),
         ),

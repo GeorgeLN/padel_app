@@ -1,9 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:padel_app/features/design/app_colors.dart';
+import 'package:padel_app/data/viewmodels/auth_viewmodel.dart';
+import 'package.padel_app/features/design/app_colors.dart';
 import 'package:padel_app/features/pages/add_ranking_page.dart';
 import 'package:padel_app/features/pages/ranking_detail_page.dart';
+import 'package:provider/provider.dart';
 
 class RankingListPage extends StatelessWidget {
   final String collectionName;
@@ -25,23 +27,30 @@ class RankingListPage extends StatelessWidget {
         backgroundColor: AppColors.primaryGreen,
         iconTheme: const IconThemeData(color: AppColors.textWhite),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => AddRankingPage(
-                collectionName: collectionName,
-                title: title,
-              ),
-            ),
-          );
+      floatingActionButton: Consumer<AuthViewModel>(
+        builder: (context, authViewModel, child) {
+          return authViewModel.isAdmin
+              ? FloatingActionButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => AddRankingPage(
+                          collectionName: collectionName,
+                          title: title,
+                        ),
+                      ),
+                    );
+                  },
+                  backgroundColor: AppColors.primaryGreen,
+                  child: const Icon(Icons.add, color: AppColors.textWhite),
+                )
+              : null;
         },
-        backgroundColor: AppColors.primaryGreen,
-        child: const Icon(Icons.add, color: AppColors.textWhite),
       ),
       body: StreamBuilder<QuerySnapshot>(
-        stream: FirebaseFirestore.instance.collection(collectionName).snapshots(),
+        stream:
+            FirebaseFirestore.instance.collection(collectionName).snapshots(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator(color: AppColors.primaryGreen));
