@@ -101,8 +101,13 @@ class RankingViewModel extends ChangeNotifier {
       _setLoading(false);
       return true;
     } catch (e) {
-      _errorMessage = e.toString();
+      if (e is Exception) {
+        _errorMessage = e.toString().replaceFirst('Exception: ', '');
+      } else {
+        _errorMessage = 'Ocurrió un error inesperado.';
+      }
       _setLoading(false);
+      notifyListeners();
       return false;
     }
   }

@@ -67,4 +67,51 @@ class RankingRepository {
       throw Exception('Error al guardar el ranking: $e');
     }
   }
+
+  Future<void> addPlayersToRanking({
+    required String collectionName,
+    required String docId,
+    required List<String> selectedUserIds,
+  }) async {
+    try {
+      final currentUser = await _authRepository.obtenerDatosUsuarioActual();
+      if (currentUser == null || !currentUser.admin) {
+        throw Exception('No tienes permisos de administrador.');
+      }
+
+      String mapKey;
+      switch (collectionName) {
+        case 'rank_clubes':
+        case 'rank_ciudades':
+          mapKey = 'jugadores';
+          break;
+        case 'rank_whatsapp':
+          mapKey = 'integrantes';
+          break;
+        default:
+          mapKey = 'jugadores';
+      }
+
+      final playersMap = <String, dynamic>{};
+      for (var userId in selectedUserIds) {
+        final userDoc = await _firestore.collection('usuarios').doc(userId).get();
+        if (userDoc.exists) {
+          final user = Usuario.fromJson(userDoc.data()!);
+          playersMap['$mapKey.$userId'] = JugadorStats(
+            nombre: user.nombre,
+            puntos: 0,
+            asistencias: 0,
+            subcategoria: 0,
+            bonificaciones: 0,
+            penalizacion: 0,
+            uid: user.uid,
+          ).toJson();
+        }
+      }
+
+      await _firestore.collection(collectionName).doc(docId).update(playersMap);
+    } catch (e) {
+      throw Exception('Error al añadir jugadores al ranking: $e');
+    }
+  }
 }
