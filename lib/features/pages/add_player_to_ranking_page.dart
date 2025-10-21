@@ -2,8 +2,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:padel_app/data/models/user_model.dart';
+import 'package:padel_app/data/repositories/ranking_repository.dart';
 import '../design/app_colors.dart';
 import 'package:padel_app/data/jugador_stats.dart';
+import 'package:provider/provider.dart';
 
 class AddPlayerToRankingPage extends StatefulWidget {
   final String collectionName;
@@ -110,27 +112,27 @@ class _AddPlayerToRankingPageState extends State<AddPlayerToRankingPage> {
       return;
     }
 
-    final playersMap = <String, dynamic>{};
-    for (var userId in _selectedUserIds) {
-      final user = _allUsers.firstWhere((u) => u.uid == userId);
-      playersMap['$mapKey.$userId'] = JugadorStats(
-        nombre: user.nombre,
-        puntos: 0,
-        asistencias: 0,
-        subcategoria: 0,
-        bonificaciones: 0,
-        penalizacion: 0,
-        uid: user.uid,
-      ).toJson();
-    }
+    try {
+      final rankingRepository =
+          Provider.of<RankingRepository>(context, listen: false);
+      await rankingRepository.addPlayersToRanking(
+        collectionName: widget.collectionName,
+        docId: widget.docId,
+        selectedUserIds: _selectedUserIds,
+      );
 
-    await FirebaseFirestore.instance
-        .collection(widget.collectionName)
-        .doc(widget.docId)
-        .update(playersMap);
-
-    if (mounted) {
-      Navigator.of(context).pop();
+      if (mounted) {
+        Navigator.of(context).pop();
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.toString().replaceFirst('Exception: ', '')),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
