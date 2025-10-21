@@ -13,6 +13,7 @@ class AddPlayerToRankingPage extends StatefulWidget {
     super.key,
     required this.collectionName,
     required this.docId,
+    
   });
 
   @override
